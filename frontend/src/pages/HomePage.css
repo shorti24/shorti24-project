@@ -1,0 +1,148 @@
+/* Reset */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Premium Homepage */
+.homepage.premium {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6b21a8, #4f46e5, #ec4899);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px;
+}
+
+.homepage.premium.dark {
+  background: #1f1c2c;
+  color: #fefefe;
+}
+
+/* Dark Mode Toggle */
+.dark-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+}
+.dark-toggle button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background: #FFD700;
+  color: #1f1c2c;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  margin-bottom: 50px;
+}
+.hero h1 {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #FFD700;
+}
+.hero p {
+  font-size: 1.3rem;
+  margin-top: 10px;
+}
+
+/* Input Section */
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 700px;
+  margin-bottom: 50px;
+}
+.input-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.input-row input {
+  flex: 1;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 2px solid #FFD700;
+  outline: none;
+  font-size: 1rem;
+  color: #111827;
+}
+.input-row input:focus {
+  box-shadow: 0 0 12px #FFD70050;
+}
+.input-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.input-buttons button {
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: none;
+  background-color: #FFD700;
+  color: #1f1c2c;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.input-buttons button:hover {
+  transform: scale(1.05);
+}
+
+/* Recent Links */
+.recent-links {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 80px;
+}
+.link-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #111827;
+  padding: 16px 20px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  flex-wrap: wrap;
+}
+.link-card a {
+  font-weight: 600;
+  text-decoration: none;
+}
+.card-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.card-buttons button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background-color: #FFD700;
+  color: #1f1c2c;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.card-buttons button:hover {
+  transform: scale(1.05);
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #f3f4f6;
+}
