@@ -4,43 +4,43 @@ import { supabase } from "../supabaseClient";
 import { getCountry } from "../utils/getCountry";
 
 /* =====================
-   ADS CONFIG
+   ADS CONFIG (EMPTY)
 ===================== */
 const SMART_LINKS = {
-  BD: "https://www.effectivegatecpm.com/ir2riavk?key=83f4cf0bacd3006f6e9abca3bcdcafff",
-  US: "https://www.effectivegatecpm.com/fpxt8394?key=9265ebfce02c04b3093256a4f400a455",
-  ALL: "https://www.effectivegatecpm.com/ir2riavk?key=83f4cf0bacd3006f6e9abca3bcdcafff",
+  BD: "",
+  US: "",
+  ALL: "",
 };
 
-const POPUP_SCRIPT = "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js";
-
-const BANNER_SCRIPT = "https://www.highperformanceformat.com/8d3db34cc9b0d836d7457e364bbe0e0f/invoke.js";
-const BANNER_OPTIONS = {
-  key: "8d3db34cc9b0d836d7457e364bbe0e0f",
-  format: "iframe",
-  height: 90,
-  width: 728,
-  params: {},
-};
+const POPUP_SCRIPT = "";
+const BANNER_SCRIPT = "";
+const BANNER_OPTIONS = null;
 
 /* =====================
    SCRIPT INJECTOR
 ===================== */
 function useScript(src, options) {
   useEffect(() => {
+    if (!src) return;
     if (options) window.atOptions = options;
+
     const s = document.createElement("script");
     s.src = src;
     s.async = true;
     document.body.appendChild(s);
-    return () => document.body.removeChild(s);
+
+    return () => {
+      document.body.removeChild(s);
+    };
   }, [src, options]);
 }
 
 /* =====================
-   AD SLIDER
+   AD SLIDER (PLACEHOLDER)
 ===================== */
 function AdSlider({ adUrl }) {
+  if (!adUrl) return null;
+
   return (
     <iframe
       title="ads"
@@ -52,7 +52,7 @@ function AdSlider({ adUrl }) {
 }
 
 /* =====================
-   NON SKIP AD
+   NON SKIP AD (PLACEHOLDER)
 ===================== */
 function NonSkipAd({ onDone, adUrl }) {
   const [sec, setSec] = useState(8);
@@ -66,6 +66,14 @@ function NonSkipAd({ onDone, adUrl }) {
     return () => clearTimeout(t);
   }, [sec, onDone]);
 
+  if (!adUrl) {
+    return (
+      <p style={{ color: "#374151" }}>
+        Please wait {sec} seconds...
+      </p>
+    );
+  }
+
   return (
     <div style={{ width: "100%", maxWidth: 900 }}>
       <iframe
@@ -75,7 +83,7 @@ function NonSkipAd({ onDone, adUrl }) {
         sandbox="allow-scripts allow-same-origin allow-popups"
       />
       <p style={{ marginTop: 10, color: "#374151" }}>
-        <strong>English:</strong> Video ends, then you will get the original link ({sec})
+        Video ends, then you will get the original link ({sec})
       </p>
     </div>
   );
@@ -91,13 +99,13 @@ export default function Redirect() {
   const [countdown, setCountdown] = useState(10);
   const [showNonSkip, setShowNonSkip] = useState(false);
   const [canGetLink, setCanGetLink] = useState(false);
-  const [adUrl, setAdUrl] = useState(SMART_LINKS.ALL);
+  const [adUrl, setAdUrl] = useState("");
 
-  /* popup + banner */
+  /* popup + banner (disabled) */
   useScript(POPUP_SCRIPT);
   useScript(BANNER_SCRIPT, BANNER_OPTIONS);
 
-  /* get country + ad */
+  /* get country */
   useEffect(() => {
     getCountry().then((c) => setAdUrl(SMART_LINKS[c] || SMART_LINKS.ALL));
   }, []);
@@ -130,10 +138,12 @@ export default function Redirect() {
   /* countdown */
   useEffect(() => {
     if (loading || showNonSkip) return;
+
     if (countdown <= 0) {
       setShowNonSkip(true);
       return;
     }
+
     const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(t);
   }, [countdown, loading, showNonSkip]);
@@ -146,7 +156,6 @@ export default function Redirect() {
 
   const handleGetLink = () => {
     window.open(originalUrl, "_blank");
-    window.location.href = adUrl;
   };
 
   if (loading)
