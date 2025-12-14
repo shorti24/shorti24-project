@@ -45,7 +45,7 @@ export default function Redirect() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          setShowButton(true); // Show Get Link button
+          setShowButton(true);
           return 0;
         }
         return prev - 1;
@@ -55,17 +55,17 @@ export default function Redirect() {
     return () => clearInterval(interval);
   }, [originalUrl]);
 
-  // Handle Get Link click: current tab popunder + new tab original URL
+  // Handle Get Link click: popunder + new tab original URL
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // 1️⃣ Open popunder ad in current tab
+    // 1️⃣ Current tab popunder ad
     window.open(
       "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js",
       "_self"
     );
 
-    // 2️⃣ Open original URL in new tab
+    // 2️⃣ New tab original URL
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(originalUrl)) {
       finalUrl = "https://" + originalUrl;
@@ -126,9 +126,10 @@ export default function Redirect() {
         Click "Get Link" after countdown to open your URL
       </p>
 
-      {/* Optional banner/social ads (countdown somoy current tab e show kora) */}
+      {/* Banner/social ads while countdown */}
       <div style={{ marginBottom: "40px" }}>
         <script type="text/javascript" src="https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js"></script>
+        {/* Add more scripts for social/banners if needed */}
       </div>
 
       {showButton && (
