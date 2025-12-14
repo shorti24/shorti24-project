@@ -59,13 +59,10 @@ export default function Redirect() {
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // 1️⃣ Current tab popunder ad
-    const popunderScript = document.createElement("script");
-    popunderScript.src = "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js";
-    popunderScript.async = true;
-    document.body.appendChild(popunderScript);
+    // 1️⃣ Current tab: popunder ad
+    window.location.href = "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js";
 
-    // 2️⃣ Open original URL in new tab
+    // 2️⃣ New tab: original URL
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(originalUrl)) {
       finalUrl = "https://" + originalUrl;
