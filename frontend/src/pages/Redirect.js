@@ -8,8 +8,10 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showButton, setShowButton] = useState(false);
+  const [adsProvider, setAdsProvider] = useState(null);
+  const [cpmRate, setCpmRate] = useState(0);
 
-  // Fetch original URL from Supabase
+  // Fetch original URL + ads provider
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -25,12 +27,20 @@ export default function Redirect() {
       }
 
       setOriginalUrl(data.original_url);
+      setAdsProvider(data.ads_provider);
+      setCpmRate(data.cpm_rate);
       setLoading(false);
 
-      // Increment clicks
+      // Increment clicks & earnings
       await supabase
         .from("short_urls")
-        .update({ clicks: data.clicks + 1 })
+        .update({
+          clicks: data.clicks + 1,
+          total_valid_clicks: data.total_valid_clicks + 1,
+          earnings: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
+          total_user_earning: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
+          total_platform_earning: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate * 0.3,
+        })
         .eq("id", data.id);
     };
 
@@ -40,9 +50,8 @@ export default function Redirect() {
   // Countdown timer
   useEffect(() => {
     if (!originalUrl) return;
-
     const interval = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
           setShowButton(true);
@@ -51,38 +60,34 @@ export default function Redirect() {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
   }, [originalUrl]);
 
-  // Handle Get Link click: popunder + new tab original URL
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // 1️⃣ Current tab popunder ad
-    window.open(
-      "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js",
-      "_self"
-    );
+    // Open country-specific popunder
+    const adsScripts = {
+      HighCPMNetworkUS: "https://highcpm-us.example.com/ad.js",
+      HighCPMNetworkUK: "https://highcpm-uk.example.com/ad.js",
+      HighCPMNetworkCA: "https://highcpm-ca.example.com/ad.js",
+      HighCPMNetworkIN: "https://highcpm-in.example.com/ad.js",
+      EffectiveGateCPM: "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js",
+    };
 
-    // 2️⃣ New tab original URL
-    let finalUrl = originalUrl;
-    if (!/^https?:\/\//i.test(originalUrl)) {
-      finalUrl = "https://" + originalUrl;
+    if (adsProvider && adsScripts[adsProvider]) {
+      window.open(adsScripts[adsProvider], "_self");
     }
+
+    // Open original URL
+    let finalUrl = originalUrl;
+    if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
     window.open(finalUrl, "_blank");
   };
 
   if (loading)
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        background: "#f5f5f5",
-      }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <h2>Loading...</h2>
       </div>
     );
@@ -94,13 +99,11 @@ export default function Redirect() {
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       background: "linear-gradient(135deg, #fff8e1, #ffd700)",
       color: "#111827",
       textAlign: "center",
-      padding: "40px",
+      padding: "40px"
     }}>
-      {/* Countdown Circle */}
       <div style={{
         width: "120px",
         height: "120px",
@@ -125,12 +128,6 @@ export default function Redirect() {
       <p style={{ color: "#6B7280", fontSize: "1rem", marginBottom: "40px" }}>
         Click "Get Link" after countdown to open your URL
       </p>
-
-      {/* Banner/social ads while countdown */}
-      <div style={{ marginBottom: "40px" }}>
-        <script type="text/javascript" src="https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js"></script>
-        {/* Add more scripts for social/banners if needed */}
-      </div>
 
       {showButton && (
         <button

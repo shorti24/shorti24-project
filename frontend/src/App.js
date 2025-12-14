@@ -1,14 +1,17 @@
-// src/App.js
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ShortUrls from "./pages/ShortUrls";
-import RedirectPage from "./pages/Redirect";
+import Redirect from "./pages/Redirect";
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Homepage */}
         <Route path="/" element={<ShortUrls />} />
-        <Route path="/:code" element={<RedirectPage />} />
+
+        {/* 🔥 Short link route */}
+        <Route path="/:code" element={<Redirect />} />
       </Routes>
     </Router>
   );
