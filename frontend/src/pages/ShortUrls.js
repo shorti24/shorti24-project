@@ -7,7 +7,7 @@ export default function HomePage() {
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const BASE_URL = "https://shorti24.netlify.app/";
+  const BASE_URL = "https://shorti24.pages.dev/";
 
   const generateShortCode = (length = 6) => {
     const chars =
