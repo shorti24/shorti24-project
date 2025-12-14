@@ -8,7 +8,7 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [popupShown, setPopupShown] = useState(false);
-  const adsPageUrl = "https://your-ads-page.com"; // Replace with your ads page
+  const adsPageUrl = "https://your-ads-page.com"; // Current tab ads page
 
   // Fetch original URL from Supabase
   useEffect(() => {
@@ -46,8 +46,7 @@ export default function Redirect() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          // Show popup ad after countdown
-          setPopupShown(true);
+          setPopupShown(true); // Popup ad show korbe
           return 0;
         }
         return prev - 1;
@@ -81,8 +80,11 @@ export default function Redirect() {
 
   // Load banner / iframe ad
   useEffect(() => {
-    const bannerOptions = document.createElement("script");
-    bannerOptions.innerHTML = `
+    const container = document.getElementById("banner-ad");
+    if (!container) return;
+
+    const optionsScript = document.createElement("script");
+    optionsScript.innerHTML = `
       atOptions = {
         'key' : '8d3db34cc9b0d836d7457e364bbe0e0f',
         'format' : 'iframe',
@@ -91,18 +93,34 @@ export default function Redirect() {
         'params' : {}
       };
     `;
-    document.getElementById("banner-ad")?.appendChild(bannerOptions);
+    container.appendChild(optionsScript);
 
     const bannerScript = document.createElement("script");
     bannerScript.src = "https://www.highperformanceformat.com/8d3db34cc9b0d836d7457e364bbe0e0f/invoke.js";
     bannerScript.async = true;
-    document.getElementById("banner-ad")?.appendChild(bannerScript);
+    container.appendChild(bannerScript);
   }, []);
 
+  // Load social bar (example)
+  useEffect(() => {
+    const container = document.getElementById("social-bar");
+    if (!container) return;
+
+    const socialScript = document.createElement("script");
+    socialScript.src = "https://example.com/social-bar.js"; // Replace with actual social bar script
+    socialScript.async = true;
+    container.appendChild(socialScript);
+  }, []);
+
+  // Popunder style handle
   const handleGetLink = () => {
     if (!originalUrl) return;
-    window.open(originalUrl, "_blank"); // Open original URL
-    window.location.href = adsPageUrl; // Redirect to ads page
+
+    // Original URL new tab
+    const newWindow = window.open(originalUrl, "_blank");
+    if (newWindow) newWindow.blur(); // Popunder style
+
+    window.focus(); // Current tab focus (ads page)
   };
 
   if (loading)
@@ -191,6 +209,7 @@ export default function Redirect() {
         display: "flex",
         justifyContent: "center",
       }}></div>
+      <div id="social-bar" style={{ margin: "20px 0" }}></div>
 
       <style>{`
         @keyframes pulse {
