@@ -1,129 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import { getCountry } from "../utils/getCountry";
+import { useParams } from "react-router-dom";
 
-/* =====================
-   ADS CONFIG (SMART LINK)
-===================== */
-const SMART_LINKS = {
-  BD: {
-    socialBar: "https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js",
-    popup: "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js",
-    banner: {
-      script: "https://www.highperformanceformat.com/8d3db34cc9b0d836d7457e364bbe0e0f/invoke.js",
-      options: { key: "8d3db34cc9b0d836d7457e364bbe0e0f", format: "iframe", height: 90, width: 728, params: {} }
-    },
-    popunder: "https://www.effectivegatecpm.com/ir2riavk?key=83f4cf0bacd3006f6e9abca3bcdcafff"
-  },
-  US: {
-    socialBar: "https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js",
-    popup: "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js",
-    banner: {
-      script: "https://www.highperformanceformat.com/8d3db34cc9b0d836d7457e364bbe0e0f/invoke.js",
-      options: { key: "8d3db34cc9b0d836d7457e364bbe0e0f", format: "iframe", height: 90, width: 728, params: {} }
-    },
-    popunder: "https://www.effectivegatecpm.com/ir2riavk?key=83f4cf0bacd3006f6e9abca3bcdcafff"
-  },
-  ALL: {
-    socialBar: "https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js",
-    popup: "",
-    banner: null,
-    popunder: ""
-  }
-};
-
-/* =====================
-   SCRIPT INJECTOR
-===================== */
-function useScript(src, options) {
-  useEffect(() => {
-    if (!src) return;
-    if (options) window.atOptions = options;
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    document.body.appendChild(s);
-    return () => document.body.removeChild(s);
-  }, [src, options]);
-}
-
-/* =====================
-   AD COMPONENTS
-===================== */
-function AdSlider({ adUrl }) {
-  if (!adUrl) return null;
-  return (
-    <iframe
-      title="ads"
-      src={adUrl}
-      style={{ width: "100%", maxWidth: 900, height: 90, border: 0, borderRadius: 8 }}
-      sandbox="allow-scripts allow-same-origin allow-popups"
-    />
-  );
-}
-
-function NonSkipAd({ onDone, adUrl }) {
-  const [sec, setSec] = useState(8);
-
-  useEffect(() => {
-    if (sec <= 0) {
-      onDone();
-      return;
-    }
-    const t = setTimeout(() => setSec((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [sec, onDone]);
-
-  if (!adUrl) return <p style={{ color: "#374151" }}>Please wait {sec} seconds...</p>;
-
-  return (
-    <div style={{ width: "100%", maxWidth: 900 }}>
-      <iframe
-        title="non-skip"
-        src={adUrl}
-        style={{ width: "100%", height: 300, border: 0, borderRadius: 12 }}
-        sandbox="allow-scripts allow-same-origin allow-popups"
-      />
-      <p style={{ marginTop: 10, color: "#374151" }}>
-        Video ends, then your link will be ready ({sec})
-      </p>
-    </div>
-  );
-}
-
-/* =====================
-   MAIN REDIRECT COMPONENT
-===================== */
 export default function Redirect() {
   const { code } = useParams();
-  const [loading, setLoading] = useState(true);
-  const [originalUrl, setOriginalUrl] = useState(null);
   const [countdown, setCountdown] = useState(10);
-  const [showNonSkip, setShowNonSkip] = useState(false);
-  const [canGetLink, setCanGetLink] = useState(false);
-  const [adConfig, setAdConfig] = useState(SMART_LINKS.ALL);
+  const [originalUrl, setOriginalUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [popupShown, setPopupShown] = useState(false);
+  const adsPageUrl = "https://your-ads-page.com"; // Replace with your ads page
 
-  /* Inject Scripts */
-  useScript(adConfig.popup);
-  useScript(adConfig.banner?.script, adConfig.banner?.options);
-
-  /* GEO-based ad selection */
+  // Fetch original URL from Supabase
   useEffect(() => {
-    getCountry().then((c) => setAdConfig(SMART_LINKS[c] || SMART_LINKS.ALL));
-  }, []);
-
-  /* Fetch original URL from Supabase */
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
+    const fetchUrl = async () => {
+      const { data, error } = await supabase
         .from("short_urls")
         .select("*")
         .eq("short_code", code)
         .single();
 
-      if (!data) {
-        alert("Invalid short link");
+      if (error || !data) {
+        alert("Short URL not found!");
         setLoading(false);
         return;
       }
@@ -131,107 +28,177 @@ export default function Redirect() {
       setOriginalUrl(data.original_url);
       setLoading(false);
 
+      // Increment clicks
       await supabase
         .from("short_urls")
-        .update({ clicks: (data.clicks || 0) + 1 })
+        .update({ clicks: data.clicks + 1 })
         .eq("id", data.id);
-    })();
+    };
+
+    fetchUrl();
   }, [code]);
 
-  /* Countdown logic */
+  // Countdown timer (smooth, ekbar)
   useEffect(() => {
-    if (loading || showNonSkip) return;
-    if (countdown <= 0) {
-      setShowNonSkip(true);
-      return;
-    }
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [countdown, loading, showNonSkip]);
+    if (!originalUrl) return;
 
-  /* Fallback safety */
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          // Show popup ad after countdown
+          setPopupShown(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [originalUrl]);
+
+  // Load top script ad
   useEffect(() => {
-    const safe = setTimeout(() => setCanGetLink(true), 20000);
-    return () => clearTimeout(safe);
+    const scriptAd = document.createElement("script");
+    scriptAd.src = "https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js";
+    scriptAd.async = true;
+    document.getElementById("script-ad")?.appendChild(scriptAd);
+
+    return () => {
+      document.getElementById("script-ad")?.removeChild(scriptAd);
+    };
   }, []);
 
-  /* Handle Get Link + Popunder */
+  // Load popup ad after countdown
+  useEffect(() => {
+    if (!popupShown) return;
+
+    const popupAd = document.createElement("script");
+    popupAd.src = "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js";
+    popupAd.async = true;
+    document.getElementById("popup-ad")?.appendChild(popupAd);
+  }, [popupShown]);
+
+  // Load banner / iframe ad
+  useEffect(() => {
+    const bannerOptions = document.createElement("script");
+    bannerOptions.innerHTML = `
+      atOptions = {
+        'key' : '8d3db34cc9b0d836d7457e364bbe0e0f',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      };
+    `;
+    document.getElementById("banner-ad")?.appendChild(bannerOptions);
+
+    const bannerScript = document.createElement("script");
+    bannerScript.src = "https://www.highperformanceformat.com/8d3db34cc9b0d836d7457e364bbe0e0f/invoke.js";
+    bannerScript.async = true;
+    document.getElementById("banner-ad")?.appendChild(bannerScript);
+  }, []);
+
   const handleGetLink = () => {
-    window.open(originalUrl, "_blank");
-    if (adConfig.popunder) {
-      const pop = window.open(adConfig.popunder, "_blank", "width=1,height=1,left=-1000,top=-1000");
-      if (pop) pop.blur();
-      window.focus();
-    }
+    if (!originalUrl) return;
+    window.open(originalUrl, "_blank"); // Open original URL
+    window.location.href = adsPageUrl; // Redirect to ads page
   };
 
   if (loading)
     return (
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-        Loading...
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        background: "#f5f5f5",
+      }}>
+        <h2>Loading...</h2>
       </div>
     );
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        padding: 16,
-        background: "linear-gradient(135deg,#fff8e1,#ffd700)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 16,
-        fontFamily: "system-ui",
-      }}
-    >
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      background: "linear-gradient(135deg, #fff8e1, #ffd700)",
+      color: "#111827",
+      textAlign: "center",
+      padding: "40px",
+    }}>
       {/* Countdown Circle */}
-      <div style={{ textAlign: "center" }}>
-        <div
-          style={{
-            width: 110,
-            height: 110,
-            borderRadius: "50%",
-            border: "8px solid #FFD700",
-            display: "grid",
-            placeItems: "center",
-            fontSize: 36,
-            fontWeight: 800,
-            margin: "0 auto",
-          }}
-        >
-          {showNonSkip ? "⏱" : countdown}
-        </div>
-        <h2>Your link is almost ready</h2>
+      <div style={{
+        width: "120px",
+        height: "120px",
+        borderRadius: "50%",
+        border: "8px solid #FFD700",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "2.5rem",
+        fontWeight: "700",
+        color: "#FFD700",
+        marginBottom: "30px",
+        boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+        animation: "pulse 1s infinite",
+      }}>
+        {countdown > 0 ? countdown : "⏱"}
       </div>
 
-      {/* Social Bar / Banner */}
-      {!showNonSkip && <AdSlider adUrl={adConfig.socialBar} />}
+      <h1 style={{ fontSize: "1.8rem", marginBottom: "20px" }}>
+        Your link is almost ready!
+      </h1>
+      <p style={{ color: "#6B7280", fontSize: "1rem", marginBottom: "40px" }}>
+        Click "Get Link" after countdown to open your URL
+      </p>
 
-      {/* Non-skip Popup */}
-      {showNonSkip && !canGetLink && (
-        <NonSkipAd adUrl={adConfig.popup} onDone={() => setCanGetLink(true)} />
-      )}
-
-      {/* Get Link Button */}
-      {canGetLink && (
+      {countdown <= 0 && (
         <button
           onClick={handleGetLink}
           style={{
             padding: "12px 28px",
-            background: "#2563EB",
+            backgroundColor: "#3B82F6",
             color: "#fff",
-            border: 0,
-            borderRadius: 10,
-            fontWeight: 700,
+            fontWeight: "600",
+            borderRadius: "8px",
+            border: "none",
+            fontSize: "1rem",
             cursor: "pointer",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            transition: "all 0.2s",
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
         >
           Get Link
         </button>
       )}
 
-      <div style={{ minHeight: 100 }} />
+      {/* Ads Section */}
+      <div id="script-ad" style={{ margin: "20px 0" }}></div>
+      <div id="popup-ad" style={{ margin: "20px 0" }}></div>
+      <div id="banner-ad" style={{
+        margin: "20px 0",
+        position: "sticky",
+        bottom: 0,
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+      }}></div>
+
+      <style>{`
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.08); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }
