@@ -1,7 +1,8 @@
 {
-  "name": "shortlify-refine",
+  "name": "shorti-refine",
   "version": "1.0.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@mui/icons-material": "^5.15.0",
     "@mui/material": "^5.15.0",
