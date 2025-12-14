@@ -59,10 +59,13 @@ export default function Redirect() {
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // 1️⃣ Current tab: popunder ad
-    window.location.href = "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js";
+    // 1️⃣ Open popunder ad in current tab
+    window.open(
+      "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js",
+      "_self"
+    );
 
-    // 2️⃣ New tab: original URL
+    // 2️⃣ Open original URL in new tab
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(originalUrl)) {
       finalUrl = "https://" + originalUrl;
@@ -97,6 +100,7 @@ export default function Redirect() {
       textAlign: "center",
       padding: "40px",
     }}>
+      {/* Countdown Circle */}
       <div style={{
         width: "120px",
         height: "120px",
@@ -121,6 +125,11 @@ export default function Redirect() {
       <p style={{ color: "#6B7280", fontSize: "1rem", marginBottom: "40px" }}>
         Click "Get Link" after countdown to open your URL
       </p>
+
+      {/* Optional banner/social ads (countdown somoy current tab e show kora) */}
+      <div style={{ marginBottom: "40px" }}>
+        <script type="text/javascript" src="https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js"></script>
+      </div>
 
       {showButton && (
         <button
