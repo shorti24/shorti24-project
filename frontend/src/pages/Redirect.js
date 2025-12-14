@@ -7,8 +7,7 @@ export default function Redirect() {
   const [countdown, setCountdown] = useState(10);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [popupShown, setPopupShown] = useState(false);
-  const adsPageUrl = "https://your-ads-page.com"; // Current tab ads page
+  const [showButton, setShowButton] = useState(false);
 
   // Fetch original URL from Supabase
   useEffect(() => {
@@ -38,7 +37,7 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Countdown timer (smooth, ekbar)
+  // Countdown timer
   useEffect(() => {
     if (!originalUrl) return;
 
@@ -46,7 +45,7 @@ export default function Redirect() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          setPopupShown(true); // Popup ad show korbe
+          setShowButton(true); // Show Get Link button
           return 0;
         }
         return prev - 1;
@@ -56,71 +55,61 @@ export default function Redirect() {
     return () => clearInterval(interval);
   }, [originalUrl]);
 
-  // Load top script ad
+  // Load banner and social bar ads during countdown
   useEffect(() => {
-    const scriptAd = document.createElement("script");
-    scriptAd.src = "https://pl28257660.effectivegatecpm.com/68/9a/cd/689acdeb2523ed41b19a5d29e214dcfe.js";
-    scriptAd.async = true;
-    document.getElementById("script-ad")?.appendChild(scriptAd);
+    const bannerContainer = document.getElementById("banner-ad");
+    const socialContainer = document.getElementById("social-bar");
 
-    return () => {
-      document.getElementById("script-ad")?.removeChild(scriptAd);
-    };
+    if (bannerContainer) {
+      const optionsScript = document.createElement("script");
+      optionsScript.innerHTML = `
+        atOptions = {
+          'key' : '8d3db34cc9b0d836d7457e364bbe0e0f',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
+      `;
+      bannerContainer.appendChild(optionsScript);
+
+      const bannerScript = document.createElement("script");
+      bannerScript.src = "https://www.highperformanceformat.com/8d3db34cc9b0d836d7457e364bbe0e0f/invoke.js";
+      bannerScript.async = true;
+      bannerContainer.appendChild(bannerScript);
+    }
+
+    if (socialContainer) {
+      const socialScript = document.createElement("script");
+      socialScript.src = "https://example.com/social-bar.js"; // Replace with actual social bar script
+      socialScript.async = true;
+      socialContainer.appendChild(socialScript);
+    }
   }, []);
 
-  // Load popup ad after countdown
-  useEffect(() => {
-    if (!popupShown) return;
-
+  // Function to trigger popunder ad on current tab
+  const triggerPopunderAd = () => {
     const popupAd = document.createElement("script");
     popupAd.src = "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js";
     popupAd.async = true;
-    document.getElementById("popup-ad")?.appendChild(popupAd);
-  }, [popupShown]);
+    document.body.appendChild(popupAd);
+  };
 
-  // Load banner / iframe ad
-  useEffect(() => {
-    const container = document.getElementById("banner-ad");
-    if (!container) return;
-
-    const optionsScript = document.createElement("script");
-    optionsScript.innerHTML = `
-      atOptions = {
-        'key' : '8d3db34cc9b0d836d7457e364bbe0e0f',
-        'format' : 'iframe',
-        'height' : 90,
-        'width' : 728,
-        'params' : {}
-      };
-    `;
-    container.appendChild(optionsScript);
-
-    const bannerScript = document.createElement("script");
-    bannerScript.src = "https://www.highperformanceformat.com/8d3db34cc9b0d836d7457e364bbe0e0f/invoke.js";
-    bannerScript.async = true;
-    container.appendChild(bannerScript);
-  }, []);
-
-  // Load social bar (example)
-  useEffect(() => {
-    const container = document.getElementById("social-bar");
-    if (!container) return;
-
-    const socialScript = document.createElement("script");
-    socialScript.src = "https://example.com/social-bar.js"; // Replace with actual social bar script
-    socialScript.async = true;
-    container.appendChild(socialScript);
-  }, []);
-
-  // Popunder style handle
+  // Handle Get Link click
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Original URL new tab
-    const newWindow = window.open(originalUrl, "_blank");
-    if (newWindow) newWindow.blur(); // Popunder style
+    // 1️⃣ Trigger popunder ad in current tab
+    triggerPopunderAd();
 
-    window.focus(); // Current tab focus (ads page)
+    // 2️⃣ Open original URL in new tab
+    let finalUrl = originalUrl;
+    if (!/^https?:\/\//i.test(originalUrl)) {
+      finalUrl = "https://" + originalUrl;
+    }
+    const newWindow = window.open(finalUrl, "_blank");
+    if (newWindow) newWindow.blur(); // popunder effect
+    window.focus(); // keep current tab focused
   };
 
   if (loading)
@@ -150,7 +139,6 @@ export default function Redirect() {
       textAlign: "center",
       padding: "40px",
     }}>
-      {/* Countdown Circle */}
       <div style={{
         width: "120px",
         height: "120px",
@@ -176,7 +164,7 @@ export default function Redirect() {
         Click "Get Link" after countdown to open your URL
       </p>
 
-      {countdown <= 0 && (
+      {showButton && (
         <button
           onClick={handleGetLink}
           style={{
@@ -198,9 +186,7 @@ export default function Redirect() {
         </button>
       )}
 
-      {/* Ads Section */}
-      <div id="script-ad" style={{ margin: "20px 0" }}></div>
-      <div id="popup-ad" style={{ margin: "20px 0" }}></div>
+      {/* Ads Section during countdown */}
       <div id="banner-ad" style={{
         margin: "20px 0",
         position: "sticky",
