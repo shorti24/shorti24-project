@@ -7,7 +7,7 @@ export default function Redirect() {
   const [countdown, setCountdown] = useState(10);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
-  const adsPageUrl = "https://your-ads-page.com"; // Replace with your ads page
+  const [showButton, setShowButton] = useState(false);
 
   // Fetch original URL from Supabase
   useEffect(() => {
@@ -40,15 +40,37 @@ export default function Redirect() {
   // Countdown timer
   useEffect(() => {
     if (!originalUrl) return;
-    if (countdown <= 0) return;
-    const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [countdown, originalUrl]);
 
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setShowButton(true); // Show Get Link button
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [originalUrl]);
+
+  // Handle Get Link click: current tab popunder + new tab original URL
   const handleGetLink = () => {
     if (!originalUrl) return;
-    window.open(originalUrl, "_blank"); // Open original URL
-    window.location.href = adsPageUrl; // Redirect to ads page
+
+    // 1️⃣ Current tab popunder ad
+    const popunderScript = document.createElement("script");
+    popunderScript.src = "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js";
+    popunderScript.async = true;
+    document.body.appendChild(popunderScript);
+
+    // 2️⃣ Open original URL in new tab
+    let finalUrl = originalUrl;
+    if (!/^https?:\/\//i.test(originalUrl)) {
+      finalUrl = "https://" + originalUrl;
+    }
+    window.open(finalUrl, "_blank");
   };
 
   if (loading)
@@ -103,7 +125,7 @@ export default function Redirect() {
         Click "Get Link" after countdown to open your URL
       </p>
 
-      {countdown <= 0 && (
+      {showButton && (
         <button
           onClick={handleGetLink}
           style={{
