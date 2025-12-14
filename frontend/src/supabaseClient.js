@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl) throw new Error("supabaseUrl is required.");
-if (!supabaseAnonKey) throw new Error("supabaseAnonKey is required.");
+if (!supabaseUrl) throw new Error("https://nnxxjeplvwzxoabykfct.supabase.co.");
+if (!supabaseAnonKey) throw new Error("sb_publishable_Qr0L-1bPpSJWIxI_RqdCTg_oGKnr9Id.");
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
