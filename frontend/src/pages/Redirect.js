@@ -6,9 +6,9 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showButton, setShowButton] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  // Fetch the original URL from Supabase
+  // Fetch short URL
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -38,28 +38,23 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Load Adstra pop-up script
+  // Load SOCIAL BAR ad
   useEffect(() => {
     if (!originalUrl) return;
 
-    const script = document.createElement("script");
-    script.src = "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
-    script.async = true;
+    const socialScript = document.createElement("script");
+    socialScript.src =
+      "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
+    socialScript.async = true;
 
-    script.onload = () => {
-      console.log("Adstra script loaded");
-      // Show the "Continue" button after script loads
-      setShowButton(true);
-    };
-
-    document.body.appendChild(script);
+    document.body.appendChild(socialScript);
 
     return () => {
-      document.body.removeChild(script);
+      document.body.removeChild(socialScript);
     };
   }, [originalUrl]);
 
-  const handleRedirect = () => {
+  const handleContinue = () => {
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(finalUrl)) {
       finalUrl = "https://" + finalUrl;
@@ -69,82 +64,82 @@ export default function Redirect() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
-        color: "#fff",
-        fontFamily: "'Inter', sans-serif",
-        textAlign: "center",
-        padding: "20px",
-        overflow: "hidden"
-      }}>
-        <h1 style={{ fontSize: "48px", fontWeight: "700", letterSpacing: "2px", marginBottom: "20px" }}>Loading...</h1>
-        <p style={{ fontSize: "20px", opacity: 0.8, marginBottom: "40px" }}>Please wait while we prepare your link</p>
-        <div style={{
-          width: "80px",
-          height: "80px",
-          border: "8px solid rgba(255, 255, 255, 0.2)",
-          borderTop: "8px solid #22c55e",
-          borderRadius: "50%",
-          animation: "spin 1s linear infinite"
-        }} />
-        <style>
-          {`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}
-        </style>
+      <div style={styles.wrapper}>
+        <h1 style={styles.title}>Preparing your link…</h1>
+        <div style={styles.spinner} />
       </div>
     );
   }
 
-  // Show "Continue" button after Adstra script loads
-  return showButton ? (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
-      color: "#fff",
-      fontFamily: "'Inter', sans-serif",
-      textAlign: "center",
-      padding: "20px",
-    }}>
-      <h1 style={{ fontSize: "36px", fontWeight: "700", marginBottom: "20px" }}>Your link is ready!</h1>
-      <p style={{ fontSize: "18px", opacity: 0.8, marginBottom: "30px" }}>Click below to continue</p>
-      <button
-        onClick={handleRedirect}
-        style={{
-          padding: "16px 40px",
-          background: "linear-gradient(90deg, #22c55e, #16a34a)",
-          color: "#fff",
-          fontSize: "20px",
-          fontWeight: "600",
-          border: "none",
-          borderRadius: "12px",
-          cursor: "pointer",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
-          transition: "transform 0.2s, box-shadow 0.2s"
-        }}
-        onMouseEnter={(e) => {
-          e.target.style.transform = "translateY(-3px)";
-          e.target.style.boxShadow = "0 12px 25px rgba(0,0,0,0.4)";
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.transform = "translateY(0)";
-          e.target.style.boxShadow = "0 8px 20px rgba(0,0,0,0.3)";
-        }}
-      >
+  return (
+    <div style={styles.wrapper}>
+      <h1 style={styles.title}>Your link is ready</h1>
+
+      {/* 🔥 BANNER AD (300x250) */}
+      <div style={styles.adBox}>
+        <iframe
+          src="https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js"
+          width="300"
+          height="250"
+          frameBorder="0"
+          scrolling="no"
+          title="Ad Banner"
+        />
+      </div>
+
+      <button onClick={handleContinue} style={styles.button}>
         Continue
       </button>
     </div>
-  ) : null;
+  );
 }
+
+/* =====================
+   PREMIUM STYLES
+===================== */
+
+const styles = {
+  wrapper: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#fff",
+    fontFamily: "Inter, sans-serif",
+    textAlign: "center",
+    gap: "25px",
+    padding: "20px",
+  },
+  title: {
+    fontSize: "36px",
+    fontWeight: "700",
+    letterSpacing: "1px",
+  },
+  adBox: {
+    background: "rgba(255,255,255,0.05)",
+    padding: "15px",
+    borderRadius: "16px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+  },
+  button: {
+    padding: "16px 42px",
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "#fff",
+    background: "linear-gradient(90deg, #22c55e, #16a34a)",
+    border: "none",
+    borderRadius: "14px",
+    cursor: "pointer",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
+  },
+  spinner: {
+    width: "70px",
+    height: "70px",
+    border: "7px solid rgba(255,255,255,0.2)",
+    borderTop: "7px solid #22c55e",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
+  },
+};
