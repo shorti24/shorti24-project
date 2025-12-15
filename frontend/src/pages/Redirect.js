@@ -25,7 +25,6 @@ export default function Redirect() {
       setOriginalUrl(data.original_url);
       setLoading(false);
 
-      // clicks update
       await supabase
         .from("short_urls")
         .update({
@@ -39,7 +38,6 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Countdown timer
   useEffect(() => {
     if (!loading) {
       const timer = setInterval(() => {
@@ -58,45 +56,43 @@ export default function Redirect() {
 
   const handleGetLink = () => {
     if (!ready) return;
-
-    // 👉 Pop Ads trigger (must be on click)
     if (window._pop && typeof window._pop.open === "function") {
       window._pop.open();
     }
-
-    // 👉 Redirect to original link
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
     window.location.href = decodeURIComponent(finalUrl);
   };
 
-  // ✅ Inject ads scripts dynamically
   useEffect(() => {
-    // Banner Ads config
-    const bannerConfig = document.createElement("script");
-    bannerConfig.innerHTML = `
-      atOptions = {
-        'key' : '5e631078d999c49a9297761881a85126',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-      };
-    `;
-    document.getElementById("banner-ads").appendChild(bannerConfig);
+    const bannerEl = document.getElementById("banner-ads");
+    if (bannerEl) {
+      const bannerConfig = document.createElement("script");
+      bannerConfig.innerHTML = `
+        atOptions = {
+          'key' : '5e631078d999c49a9297761881a85126',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      `;
+      bannerEl.appendChild(bannerConfig);
 
-    const bannerScript = document.createElement("script");
-    bannerScript.src =
-      "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
-    document.getElementById("banner-ads").appendChild(bannerScript);
+      const bannerScript = document.createElement("script");
+      bannerScript.src =
+        "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
+      bannerEl.appendChild(bannerScript);
+    }
 
-    // Social Bar Ads
-    const socialScript = document.createElement("script");
-    socialScript.src =
-      "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
-    document.getElementById("social-ads").appendChild(socialScript);
+    const socialEl = document.getElementById("social-ads");
+    if (socialEl) {
+      const socialScript = document.createElement("script");
+      socialScript.src =
+        "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
+      socialEl.appendChild(socialScript);
+    }
 
-    // Pop Ads
     const popScript = document.createElement("script");
     popScript.src =
       "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
@@ -116,11 +112,7 @@ export default function Redirect() {
     <div style={styles.wrapper}>
       <h1 style={styles.title}>Your Link is Ready</h1>
       <p style={styles.sub}>Please wait {timeLeft} seconds…</p>
-
-      {/* Banner Ads placeholder */}
       <div id="banner-ads" style={{ margin: "20px" }}></div>
-
-      {/* Get Link Button */}
       <button
         style={{
           ...styles.button,
@@ -132,8 +124,6 @@ export default function Redirect() {
       >
         Get Link
       </button>
-
-      {/* Social Bar Ads placeholder */}
       <div id="social-ads" style={{ marginTop: "40px" }}></div>
     </div>
   );
