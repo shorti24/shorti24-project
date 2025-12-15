@@ -8,6 +8,7 @@ export default function Redirect() {
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(15);
   const [ready, setReady] = useState(false);
+  const [clickedOnce, setClickedOnce] = useState(false);
 
   useEffect(() => {
     const fetchUrl = async () => {
@@ -56,12 +57,18 @@ export default function Redirect() {
 
   const handleGetLink = () => {
     if (!ready) return;
-    if (window._pop && typeof window._pop.open === "function") {
-      window._pop.open();
+
+    if (!clickedOnce) {
+      if (window._pop && typeof window._pop.open === "function") {
+        window._pop.open();
+      }
+      alert("Ads opened. Please watch for 15 seconds, then return here and click again.");
+      setClickedOnce(true);
+    } else {
+      let finalUrl = originalUrl;
+      if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
+      window.location.href = decodeURIComponent(finalUrl);
     }
-    let finalUrl = originalUrl;
-    if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
-    window.location.href = decodeURIComponent(finalUrl);
   };
 
   useEffect(() => {
@@ -122,7 +129,9 @@ export default function Redirect() {
         onClick={handleGetLink}
         disabled={!ready}
       >
-        Get Link
+        {clickedOnce
+          ? "Click again to go to your link"
+          : "Click to open ads (watch 15 seconds)"}
       </button>
       <div id="social-ads" style={{ marginTop: "40px" }}></div>
     </div>
