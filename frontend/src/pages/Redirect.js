@@ -4,12 +4,11 @@ import { useParams } from "react-router-dom";
 
 export default function Redirect() {
   const { code } = useParams();
-  const [countdown, setCountdown] = useState(10);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showButton, setShowButton] = useState(false);
 
-  // Fetch original URL from Supabase
+  // Fetch original URL
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -27,7 +26,6 @@ export default function Redirect() {
       setOriginalUrl(data.original_url);
       setLoading(false);
 
-      // Update click & earnings
       await supabase
         .from("short_urls")
         .update({
@@ -42,85 +40,44 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Countdown before "Get Link"
-  useEffect(() => {
-    if (!originalUrl) return;
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setShowButton(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [originalUrl]);
-
-  // Inject Video Ads (OnClckMn)
+  // Inject video ad immediately
   useEffect(() => {
     if (!originalUrl) return;
 
-    const videoScript = document.createElement("script");
-    videoScript.async = true;
-    videoScript.src = "https://js.onclckmn.com/static/onclicka.js";
-    videoScript.setAttribute("data-admpid", "402247"); // আপনার ভিডিও ads এর ID
-    document.body.appendChild(videoScript);
+    // Video ad container
+    const adContainer = document.createElement("div");
+    adContainer.id = "video-ad-container";
+    adContainer.style.width = "100%";
+    adContainer.style.maxWidth = "600px";
+    adContainer.style.margin = "50px auto";
+    adContainer.style.textAlign = "center";
+
+    document.body.appendChild(adContainer);
+
+    // Inject OnClck video ad script
+    const videoAd = document.createElement("script");
+    videoAd.src = "https://js.onclckmn.com/static/onclicka.js";
+    videoAd.async = true;
+    videoAd.setAttribute("data-admpid", "402247");
+
+    // Listen for ad end to show Get Link button
+    videoAd.onload = () => {
+      // OnClck ad usually fires automatically, but we simulate "ad finished" after 30s
+      setTimeout(() => {
+        setShowButton(true);
+      }, 30000); // 30 seconds
+    };
+
+    adContainer.appendChild(videoAd);
 
     return () => {
-      document.body.removeChild(videoScript);
+      if (adContainer) document.body.removeChild(adContainer);
     };
   }, [originalUrl]);
 
-  // Inject Banner & Social Bar
-  useEffect(() => {
-    if (!originalUrl) return;
-
-    const banner = document.createElement("div");
-    banner.innerHTML = `
-      <script type="text/javascript">
-        atOptions = {
-          'key' : '5e631078d999c49a9297761881a85126',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script type="text/javascript" src="https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js"></script>
-    `;
-    banner.style.display = "flex";
-    banner.style.justifyContent = "center";
-    banner.style.margin = "20px 0";
-
-    const social = document.createElement("div");
-    social.innerHTML = `<script type="text/javascript" src="https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js"></script>`;
-    social.style.display = "flex";
-    social.style.justifyContent = "center";
-    social.style.margin = "20px 0";
-
-    document.body.appendChild(banner);
-    document.body.appendChild(social);
-
-    return () => {
-      document.body.removeChild(banner);
-      document.body.removeChild(social);
-    };
-  }, [originalUrl]);
-
-  // Handle "Get Link" button
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Pop-under on user click
-    const popunderScript = document.createElement("script");
-    popunderScript.src = "https://js.onclckmn.com/static/onclicka.js"; // আপনার pop-under ID এখানে লাগাতে হবে
-    popunderScript.async = true;
-    popunderScript.setAttribute("data-admpid", "402245"); // Popunder ID
-    document.body.appendChild(popunderScript);
-
-    // Open original link
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
     window.open(finalUrl, "_blank");
@@ -134,26 +91,28 @@ export default function Redirect() {
     );
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px", textAlign: "center", background: "linear-gradient(135deg, #fff8e1, #ffd700)" }}>
-      <div style={{ width: "25vw", maxWidth: "120px", aspectRatio: "1", borderRadius: "50%", border: "8px solid #FFD700", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem", fontWeight: "700", color: "#FFD700", marginBottom: "20px", boxShadow: "0 8px 20px rgba(0,0,0,0.1)", animation: "pulse 1s infinite" }}>
-        {countdown > 0 ? countdown : "⏱"}
-      </div>
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>Your link is almost ready!</h1>
-      <p style={{ color: "#6B7280", fontSize: "1rem", marginBottom: "20px" }}>Click "Get Link" after countdown to open your URL</p>
-
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px", textAlign: "center" }}>
       {showButton && (
-        <button onClick={handleGetLink} style={{ width: "100%", maxWidth: "300px", padding: "12px 20px", backgroundColor: "#3B82F6", color: "#fff", fontWeight: "600", borderRadius: "8px", border: "none", fontSize: "1rem", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.2)" }}>
+        <button
+          onClick={handleGetLink}
+          style={{
+            width: "100%",
+            maxWidth: "300px",
+            padding: "12px 20px",
+            backgroundColor: "#3B82F6",
+            color: "#fff",
+            fontWeight: "600",
+            borderRadius: "8px",
+            border: "none",
+            fontSize: "1rem",
+            cursor: "pointer",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            marginTop: "20px",
+          }}
+        >
           Get Link
         </button>
       )}
-
-      <style>{`
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.08); }
-          100% { transform: scale(1); }
-        }
-      `}</style>
     </div>
   );
 }
