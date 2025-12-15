@@ -59,13 +59,13 @@ export default function Redirect() {
   }, [originalUrl]);
 
   /* =====================
-     POP ADS (ON CLICK)
+     POP ADS + REDIRECT
   ===================== */
   const handleGetLink = () => {
-    // 🔥 unlock popup permission (MOST IMPORTANT)
-    window.open("about:blank", "_self");
+    // 🔓 unlock popup permission (SAFE)
+    window.open("about:blank", "_blank");
 
-    // 🔥 EXACT POP ADS SCRIPT (AS YOU GAVE)
+    // 🔥 POP ADS SCRIPT (exact)
     const popScript = document.createElement("script");
     popScript.type = "text/javascript";
     popScript.src =
@@ -73,7 +73,7 @@ export default function Redirect() {
 
     document.body.appendChild(popScript);
 
-    // 🔁 redirect after pop fires
+    // 🔁 redirect to original link
     setTimeout(() => {
       let finalUrl = originalUrl;
       if (!/^https?:\/\//i.test(finalUrl)) {
