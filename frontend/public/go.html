@@ -36,17 +36,21 @@
     const timer = setInterval(() => {
       timeLeft--;
       countdownEl.textContent = timeLeft;
+
       if (timeLeft <= 0) {
         clearInterval(timer);
 
-        // Pop ad trigger (example, depends on ad network)
+        // ✅ Pop ad trigger (replace with actual ad network function if different)
         if (window._pop && typeof window._pop.open === "function") {
           window._pop.open();
         }
 
+        // ✅ Redirect to original URL
         const params = new URLSearchParams(window.location.search);
         const url = params.get("url");
-        if (url) window.location.href = decodeURIComponent(url);
+        if (url) {
+          window.location.href = decodeURIComponent(url);
+        }
       }
     }, 1000);
   </script>

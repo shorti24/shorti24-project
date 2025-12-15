@@ -7,6 +7,7 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [customMessage, setCustomMessage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false); // 15s পরে true হবে
 
   useEffect(() => {
     const fetchUrl = async () => {
@@ -38,7 +39,21 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
+  // 15s পরে auto redirect
+  useEffect(() => {
+    if (!originalUrl) return;
+    const timer = setTimeout(() => {
+      setReady(true);
+      // Auto redirect
+      let finalUrl = originalUrl;
+      if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
+      window.location.href = `/go.html?url=${encodeURIComponent(finalUrl)}`;
+    }, 15000);
+    return () => clearTimeout(timer);
+  }, [originalUrl]);
+
   const handleGetLink = () => {
+    if (!ready) return; // 15s আগে কাজ করবে না
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
     window.location.href = `/go.html?url=${encodeURIComponent(finalUrl)}`;
@@ -57,8 +72,20 @@ export default function Redirect() {
     <div style={styles.wrapper}>
       <h1 style={styles.title}>Your link is ready</h1>
       {customMessage && <p style={styles.custom}>{customMessage}</p>}
-      <p style={styles.sub}>Click the button to continue</p>
-      <button style={styles.button} onClick={handleGetLink}>
+      <p style={styles.sub}>
+        Please wait 15 seconds while ads are shown.  
+        After that you will be redirected automatically,  
+        or you can click the button below.
+      </p>
+      <button
+        style={{
+          ...styles.button,
+          opacity: ready ? 1 : 0.5,
+          cursor: ready ? "pointer" : "not-allowed",
+        }}
+        onClick={handleGetLink}
+        disabled={!ready}
+      >
         Get Link
       </button>
     </div>
@@ -79,7 +106,7 @@ const styles = {
     background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
   },
   title: { fontSize: "38px", fontWeight: "700" },
-  sub: { fontSize: "18px", opacity: 0.85 },
+  sub: { fontSize: "18px", opacity: 0.85, maxWidth: "600px" },
   custom: { fontSize: "20px", fontWeight: "600", color: "#facc15" },
   button: {
     padding: "16px 46px",
@@ -87,7 +114,6 @@ const styles = {
     fontWeight: "600",
     border: "none",
     borderRadius: "14px",
-    cursor: "pointer",
     color: "#fff",
     background: "linear-gradient(90deg,#22c55e,#16a34a)",
     boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
