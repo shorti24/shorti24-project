@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 import "./HomePage.css";
 
 export default function ShortUrls() {
-  const [urls, setUrls] = useState([{ longUrl: "", customCode: "" }]);
+  const [urls, setUrls] = useState([{ longUrl: "", customCode: "", customMessage: "" }]);
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
   const BASE_URL = "https://shorti24.pages.dev/";
 
-  // Generate random 6-char code
   const generateShortCode = (length = 6) => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let result = "";
@@ -20,22 +19,20 @@ export default function ShortUrls() {
     return result;
   };
 
-  // Handle input change
   const handleInputChange = (index, field, value) => {
     const newUrls = [...urls];
     newUrls[index][field] = value;
     setUrls(newUrls);
   };
 
-  // Add more input fields
-  const addMoreInput = () => setUrls([...urls, { longUrl: "", customCode: "" }]);
+  const addMoreInput = () =>
+    setUrls([...urls, { longUrl: "", customCode: "", customMessage: "" }]);
 
-  // Shorten URLs
   const handleShorten = async () => {
     setLoading(true);
     const newLinks = [];
 
-    for (let { longUrl, customCode } of urls) {
+    for (let { longUrl, customCode, customMessage } of urls) {
       if (!longUrl) continue;
       const shortCode = customCode || generateShortCode();
       const shortUrl = `${BASE_URL}${shortCode}`;
@@ -46,6 +43,7 @@ export default function ShortUrls() {
           {
             original_url: longUrl,
             short_code: shortCode,
+            custom_message: customMessage, // নতুন ফিল্ড
             clicks: 0,
             earnings: 0,
             is_ads_enabled: true,
@@ -57,29 +55,25 @@ export default function ShortUrls() {
     }
 
     setLinks([...newLinks, ...links]);
-    setUrls([{ longUrl: "", customCode: "" }]);
+    setUrls([{ longUrl: "", customCode: "", customMessage: "" }]);
     setLoading(false);
   };
 
-  // Copy to clipboard
   const handleCopy = (shortUrl) => {
     navigator.clipboard.writeText(shortUrl);
     alert("Copied to clipboard!");
   };
 
-  // Toggle dark mode
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
   return (
     <div className={`homepage premium ${darkMode ? "dark" : ""}`}>
-      {/* Dark Mode Toggle */}
       <div className="dark-toggle">
         <button onClick={toggleDarkMode}>
           {darkMode ? "Light Mode" : "Dark Mode"}
         </button>
       </div>
 
-      {/* Hero Section */}
       <header className="hero">
         <h1>Shorti24</h1>
         <p>Fast & Premium URL Shortener — Shorten, Track & Bulk Shorten</p>
@@ -91,7 +85,6 @@ export default function ShortUrls() {
         </div>
       </header>
 
-      {/* Input Section */}
       <div className="input-section">
         {urls.map((u, idx) => (
           <div key={idx} className="input-row">
@@ -107,6 +100,12 @@ export default function ShortUrls() {
               value={u.customCode}
               onChange={(e) => handleInputChange(idx, "customCode", e.target.value)}
             />
+            <input
+              type="text"
+              placeholder="Custom message (optional)"
+              value={u.customMessage}
+              onChange={(e) => handleInputChange(idx, "customMessage", e.target.value)}
+            />
           </div>
         ))}
         <div className="input-buttons">
@@ -117,16 +116,22 @@ export default function ShortUrls() {
         </div>
       </div>
 
-      {/* Shortened Links */}
       <section className="recent-links">
         {links.length === 0 && <div className="empty-state">No links yet</div>}
         {links.map((link) => (
           <div key={link.id} className="link-card">
             <div>
-              <a href={`/redirect/${link.short_code}`} target="_blank" rel="noreferrer">
+              <a
+                href={`/redirect/${link.short_code}`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 {link.shortUrl}
               </a>
               <p>Clicks: {link.clicks} | Earnings: ${link.earnings}</p>
+              {link.custom_message && (
+                <p style={{ color: "#facc15" }}>Message: {link.custom_message}</p>
+              )}
             </div>
             <div className="card-buttons">
               <button onClick={() => handleCopy(link.shortUrl)}>Copy</button>

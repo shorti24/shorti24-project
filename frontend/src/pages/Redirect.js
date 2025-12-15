@@ -5,9 +5,9 @@ import { useParams } from "react-router-dom";
 export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
+  const [customMessage, setCustomMessage] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch short URL
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -22,6 +22,7 @@ export default function Redirect() {
       }
 
       setOriginalUrl(data.original_url);
+      setCustomMessage(data.custom_message);
       setLoading(false);
 
       await supabase
@@ -37,22 +38,9 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Social bar script
-  useEffect(() => {
-    if (!originalUrl) return;
-    const social = document.createElement("script");
-    social.src =
-      "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
-    social.async = true;
-    document.body.appendChild(social);
-    return () => document.body.removeChild(social);
-  }, [originalUrl]);
-
-  // Handle Get Link → redirect to go.html
   const handleGetLink = () => {
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
-
     window.location.href = `/go.html?url=${encodeURIComponent(finalUrl)}`;
   };
 
@@ -68,6 +56,7 @@ export default function Redirect() {
   return (
     <div style={styles.wrapper}>
       <h1 style={styles.title}>Your link is ready</h1>
+      {customMessage && <p style={styles.custom}>{customMessage}</p>}
       <p style={styles.sub}>Click the button to continue</p>
       <button style={styles.button} onClick={handleGetLink}>
         Get Link
@@ -91,6 +80,7 @@ const styles = {
   },
   title: { fontSize: "38px", fontWeight: "700" },
   sub: { fontSize: "18px", opacity: 0.85 },
+  custom: { fontSize: "20px", fontWeight: "600", color: "#facc15" },
   button: {
     padding: "16px 46px",
     fontSize: "20px",
