@@ -46,7 +46,7 @@ export default function Redirect() {
 
   return (
     <div style={{ textAlign: "center", marginTop: "40vh", color: "#fff", background: "#0f2027" }}>
-      <h1>Ads are being shown…</h1>
+      <h1>Showing Pop Ads…</h1>
 
       {/* ✅ Pop Ads Script (Current Tab) */}
       <script
