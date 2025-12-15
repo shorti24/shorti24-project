@@ -6,7 +6,6 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [ready, setReady] = useState(false);
 
   // Fetch short URL
   useEffect(() => {
@@ -38,35 +37,45 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Load SOCIAL BAR ad
+  // ✅ SOCIAL BAR – FIRST PAGE ONLY
   useEffect(() => {
     if (!originalUrl) return;
 
-    const socialScript = document.createElement("script");
-    socialScript.src =
+    const social = document.createElement("script");
+    social.src =
       "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
-    socialScript.async = true;
+    social.async = true;
 
-    document.body.appendChild(socialScript);
+    document.body.appendChild(social);
 
     return () => {
-      document.body.removeChild(socialScript);
+      document.body.removeChild(social);
     };
   }, [originalUrl]);
 
-  const handleContinue = () => {
-    let finalUrl = originalUrl;
-    if (!/^https?:\/\//i.test(finalUrl)) {
-      finalUrl = "https://" + finalUrl;
-    }
-    window.location.href = finalUrl;
+  // 🔥 POP ADS ONLY ON BUTTON CLICK
+  const handleGetLink = () => {
+    const pop = document.createElement("script");
+    pop.src =
+      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
+    pop.async = true;
+
+    document.body.appendChild(pop);
+
+    setTimeout(() => {
+      let finalUrl = originalUrl;
+      if (!/^https?:\/\//i.test(finalUrl)) {
+        finalUrl = "https://" + finalUrl;
+      }
+      window.location.href = finalUrl;
+    }, 1200); // pop open হওয়ার সময়
   };
 
   if (loading) {
     return (
       <div style={styles.wrapper}>
         <h1 style={styles.title}>Preparing your link…</h1>
-        <div style={styles.spinner} />
+        <div style={styles.spinner}></div>
       </div>
     );
   }
@@ -74,70 +83,55 @@ export default function Redirect() {
   return (
     <div style={styles.wrapper}>
       <h1 style={styles.title}>Your link is ready</h1>
+      <p style={styles.sub}>Click continue to proceed</p>
 
-      {/* 🔥 BANNER AD (300x250) */}
-      <div style={styles.adBox}>
-        <iframe
-          src="https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js"
-          width="300"
-          height="250"
-          frameBorder="0"
-          scrolling="no"
-          title="Ad Banner"
-        />
-      </div>
-
-      <button onClick={handleContinue} style={styles.button}>
-        Continue
+      <button style={styles.button} onClick={handleGetLink}>
+        Get Link
       </button>
     </div>
   );
 }
 
 /* =====================
-   PREMIUM STYLES
+   PREMIUM UI
 ===================== */
 
 const styles = {
   wrapper: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+    background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     color: "#fff",
     fontFamily: "Inter, sans-serif",
     textAlign: "center",
-    gap: "25px",
-    padding: "20px",
+    gap: "20px",
   },
   title: {
-    fontSize: "36px",
+    fontSize: "38px",
     fontWeight: "700",
-    letterSpacing: "1px",
   },
-  adBox: {
-    background: "rgba(255,255,255,0.05)",
-    padding: "15px",
-    borderRadius: "16px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+  sub: {
+    opacity: 0.8,
+    fontSize: "18px",
   },
   button: {
-    padding: "16px 42px",
-    fontSize: "18px",
+    padding: "16px 45px",
+    fontSize: "20px",
     fontWeight: "600",
-    color: "#fff",
-    background: "linear-gradient(90deg, #22c55e, #16a34a)",
     border: "none",
     borderRadius: "14px",
     cursor: "pointer",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
+    color: "#fff",
+    background: "linear-gradient(90deg,#22c55e,#16a34a)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
   },
   spinner: {
     width: "70px",
     height: "70px",
-    border: "7px solid rgba(255,255,255,0.2)",
+    border: "7px solid rgba(255,255,255,.2)",
     borderTop: "7px solid #22c55e",
     borderRadius: "50%",
     animation: "spin 1s linear infinite",
