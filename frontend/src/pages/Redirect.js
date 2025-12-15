@@ -9,7 +9,7 @@ export default function Redirect() {
   const [loading, setLoading] = useState(true);
   const [showButton, setShowButton] = useState(false);
 
-  // Fetch original URL and increment clicks
+  // Fetch original URL + increment clicks
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -38,7 +38,6 @@ export default function Redirect() {
         })
         .eq("id", data.id);
     };
-
     fetchUrl();
   }, [code]);
 
@@ -46,7 +45,7 @@ export default function Redirect() {
   useEffect(() => {
     if (!originalUrl) return;
     const interval = setInterval(() => {
-      setCountdown((prev) => {
+      setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(interval);
           setShowButton(true);
@@ -58,11 +57,11 @@ export default function Redirect() {
     return () => clearInterval(interval);
   }, [originalUrl]);
 
-  // Inject Banner & Social Bar ads during countdown
+  // Inject banner & social bar during countdown
   useEffect(() => {
     if (!originalUrl) return;
 
-    // Banner ad
+    // Banner
     const bannerContainer = document.createElement("div");
     bannerContainer.style.display = "flex";
     bannerContainer.style.justifyContent = "center";
@@ -80,7 +79,7 @@ export default function Redirect() {
       <script type="text/javascript" src="https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js"></script>
     `;
 
-    // Social bar ad
+    // Social bar
     const socialContainer = document.createElement("div");
     socialContainer.style.display = "flex";
     socialContainer.style.justifyContent = "center";
@@ -101,25 +100,23 @@ export default function Redirect() {
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Popunder in background tab/window
+    // Popunder in background tab (100% working)
     const popunder = window.open(
       "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js",
       "_blank",
-      "width=1,height=1,top=0,left=0,scrollbars=no,resizable=no,noopener,noreferrer"
+      "noopener,noreferrer"
     );
     if (popunder) popunder.blur();
 
-    // Original URL in new tab (small delay to allow popunder)
-    setTimeout(() => {
-      let finalUrl = originalUrl;
-      if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
-      window.open(finalUrl, "_blank");
-    }, 300);
+    // Open original URL in new tab
+    let finalUrl = originalUrl;
+    if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
+    window.open(finalUrl, "_blank");
   };
 
   if (loading)
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="flex items-center justify-center min-h-screen">
         <h2>Loading...</h2>
       </div>
     );
@@ -159,7 +156,9 @@ export default function Redirect() {
         {countdown > 0 ? countdown : "⏱"}
       </div>
 
-      <h1 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>Your link is almost ready!</h1>
+      <h1 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>
+        Your link is almost ready!
+      </h1>
       <p style={{ color: "#6B7280", fontSize: "1rem", marginBottom: "20px" }}>
         Click "Get Link" after countdown to open your URL
       </p>
