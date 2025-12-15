@@ -7,7 +7,9 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch short URL
+  /* =====================
+     FETCH SHORT URL
+  ===================== */
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -37,11 +39,14 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // ✅ SOCIAL BAR – FIRST PAGE ONLY
+  /* =====================
+     SOCIAL BAR (FIRST PAGE)
+  ===================== */
   useEffect(() => {
     if (!originalUrl) return;
 
     const social = document.createElement("script");
+    social.type = "text/javascript";
     social.src =
       "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
     social.async = true;
@@ -53,24 +58,34 @@ export default function Redirect() {
     };
   }, [originalUrl]);
 
-  // 🔥 POP ADS ONLY ON BUTTON CLICK
+  /* =====================
+     POP ADS (ON CLICK)
+  ===================== */
   const handleGetLink = () => {
-    const pop = document.createElement("script");
-    pop.src =
+    // 🔥 unlock popup permission (MOST IMPORTANT)
+    window.open("about:blank", "_self");
+
+    // 🔥 EXACT POP ADS SCRIPT (AS YOU GAVE)
+    const popScript = document.createElement("script");
+    popScript.type = "text/javascript";
+    popScript.src =
       "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
-    pop.async = true;
 
-    document.body.appendChild(pop);
+    document.body.appendChild(popScript);
 
+    // 🔁 redirect after pop fires
     setTimeout(() => {
       let finalUrl = originalUrl;
       if (!/^https?:\/\//i.test(finalUrl)) {
         finalUrl = "https://" + finalUrl;
       }
       window.location.href = finalUrl;
-    }, 1200); // pop open হওয়ার সময়
+    }, 1500);
   };
 
+  /* =====================
+     UI
+  ===================== */
   if (loading) {
     return (
       <div style={styles.wrapper}>
@@ -83,7 +98,7 @@ export default function Redirect() {
   return (
     <div style={styles.wrapper}>
       <h1 style={styles.title}>Your link is ready</h1>
-      <p style={styles.sub}>Click continue to proceed</p>
+      <p style={styles.sub}>Click the button to continue</p>
 
       <button style={styles.button} onClick={handleGetLink}>
         Get Link
@@ -95,7 +110,6 @@ export default function Redirect() {
 /* =====================
    PREMIUM UI
 ===================== */
-
 const styles = {
   wrapper: {
     minHeight: "100vh",
@@ -114,11 +128,11 @@ const styles = {
     fontWeight: "700",
   },
   sub: {
-    opacity: 0.8,
+    opacity: 0.85,
     fontSize: "18px",
   },
   button: {
-    padding: "16px 45px",
+    padding: "16px 46px",
     fontSize: "20px",
     fontWeight: "600",
     border: "none",
