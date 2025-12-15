@@ -8,9 +8,8 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showButton, setShowButton] = useState(false);
-  const [adsProvider, setAdsProvider] = useState(null);
 
-  // Fetch original URL + ads provider
+  // Fetch original URL and increment clicks
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -26,14 +25,16 @@ export default function Redirect() {
       }
 
       setOriginalUrl(data.original_url);
-      setAdsProvider(data.ads_provider);
       setLoading(false);
 
-      // Increment clicks
       await supabase
         .from("short_urls")
         .update({
           clicks: data.clicks + 1,
+          total_valid_clicks: data.total_valid_clicks + 1,
+          earnings: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
+          total_user_earning: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
+          total_platform_earning: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate * 0.3,
         })
         .eq("id", data.id);
     };
@@ -57,44 +58,55 @@ export default function Redirect() {
     return () => clearInterval(interval);
   }, [originalUrl]);
 
-  // Inject Banner & Social Ads during countdown
+  // Inject Banner & Social Bar ads
   useEffect(() => {
-    if (countdown === 0) return;
+    if (!originalUrl) return;
 
-    const bannerDiv = document.getElementById("banner-ad");
-    const socialDiv = document.getElementById("social-ad");
-
-    // Banner
+    // Banner 300x250
     const bannerScript = document.createElement("script");
-    bannerScript.src = "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
+    bannerScript.type = "text/javascript";
+    bannerScript.src =
+      "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
     bannerScript.async = true;
-    bannerDiv.appendChild(bannerScript);
 
-    // Social bar
+    // Social Bar
     const socialScript = document.createElement("script");
-    socialScript.src = "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
+    socialScript.type = "text/javascript";
+    socialScript.src =
+      "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
     socialScript.async = true;
-    socialDiv.appendChild(socialScript);
+
+    // Container div for mobile-friendly centering
+    const bannerContainer = document.createElement("div");
+    bannerContainer.style.display = "flex";
+    bannerContainer.style.justifyContent = "center";
+    bannerContainer.style.margin = "20px 0";
+    bannerContainer.appendChild(bannerScript);
+
+    const socialContainer = document.createElement("div");
+    socialContainer.style.display = "flex";
+    socialContainer.style.justifyContent = "center";
+    socialContainer.style.margin = "20px 0";
+    socialContainer.appendChild(socialScript);
+
+    document.body.appendChild(bannerContainer);
+    document.body.appendChild(socialContainer);
 
     return () => {
-      bannerDiv.innerHTML = "";
-      socialDiv.innerHTML = "";
+      document.body.removeChild(bannerContainer);
+      document.body.removeChild(socialContainer);
     };
-  }, [countdown]);
+  }, [originalUrl]);
 
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Popunder Ad (background tab)
-    if (adsProvider) {
-      window.open(
-        "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js",
-        "_blank",
-        "width=1,height=1,left=-1000,top=-1000"
-      );
-    }
+    // Popunder ad
+    const popunderScript =
+      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
+    window.open(popunderScript, "_blank");
 
-    // Original URL (new tab)
+    // Open original URL in new tab
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
     window.open(finalUrl, "_blank");
@@ -102,125 +114,81 @@ export default function Redirect() {
 
   if (loading)
     return (
-      <div className="loader">
+      <div className="flex items-center justify-center min-h-screen">
         <h2>Loading...</h2>
       </div>
     );
 
   return (
-    <div className="redirect-container">
-      <div className="countdown-circle">{countdown > 0 ? countdown : "⏱"}</div>
-      <h1>Your link is almost ready!</h1>
-      <p>Click "Get Link" after countdown to open your URL</p>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #fff8e1, #ffd700)",
+        color: "#111827",
+        textAlign: "center",
+        padding: "20px",
+      }}
+    >
+      <div
+        style={{
+          width: "100px",
+          height: "100px",
+          maxWidth: "25vw",
+          maxHeight: "25vw",
+          borderRadius: "50%",
+          border: "8px solid #FFD700",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "2.5rem",
+          fontWeight: "700",
+          color: "#FFD700",
+          marginBottom: "20px",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+          animation: "pulse 1s infinite",
+        }}
+      >
+        {countdown > 0 ? countdown : "⏱"}
+      </div>
 
-      {/* Banner & Social ads */}
-      {countdown > 0 && (
-        <div className="ads-container">
-          <div id="banner-ad" className="ad-box"></div>
-          <div id="social-ad" className="ad-box"></div>
-        </div>
-      )}
+      <h1 style={{ fontSize: "1.5rem", marginBottom: "10px" }}>
+        Your link is almost ready!
+      </h1>
+      <p style={{ color: "#6B7280", fontSize: "1rem", marginBottom: "20px" }}>
+        Click "Get Link" after countdown to open your URL
+      </p>
 
       {showButton && (
-        <button className="get-link-btn" onClick={handleGetLink}>
+        <button
+          onClick={handleGetLink}
+          style={{
+            padding: "12px 20px",
+            backgroundColor: "#3B82F6",
+            color: "#fff",
+            fontWeight: "600",
+            borderRadius: "8px",
+            border: "none",
+            fontSize: "1rem",
+            cursor: "pointer",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            transition: "all 0.2s",
+            width: "100%",
+            maxWidth: "300px",
+          }}
+        >
           Get Link
         </button>
       )}
 
       <style>{`
-        .redirect-container {
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #fff8e1, #ffd700);
-          color: #111827;
-          text-align: center;
-          padding: 20px;
-        }
-
-        .countdown-circle {
-          width: 120px;
-          height: 120px;
-          border-radius: 50%;
-          border: 8px solid #FFD700;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: #FFD700;
-          margin-bottom: 20px;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-          animation: pulse 1s infinite;
-        }
-
         @keyframes pulse {
           0% { transform: scale(1); }
           50% { transform: scale(1.08); }
           100% { transform: scale(1); }
-        }
-
-        h1 {
-          font-size: 1.8rem;
-          margin-bottom: 10px;
-        }
-
-        p {
-          font-size: 1rem;
-          margin-bottom: 30px;
-          color: #6B7280;
-        }
-
-        .ads-container {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-          width: 100%;
-          max-width: 350px;
-          align-items: center;
-          margin-bottom: 30px;
-        }
-
-        .ad-box {
-          width: 100%;
-          min-height: 250px;
-        }
-
-        .get-link-btn {
-          padding: 14px 28px;
-          background-color: #3B82F6;
-          color: #fff;
-          font-weight: 600;
-          border-radius: 8px;
-          border: none;
-          font-size: 1rem;
-          cursor: pointer;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-          transition: all 0.2s;
-        }
-
-        .get-link-btn:hover {
-          transform: translateY(-3px);
-        }
-
-        @media (max-width: 480px) {
-          .countdown-circle {
-            width: 100px;
-            height: 100px;
-            font-size: 2rem;
-          }
-          h1 {
-            font-size: 1.5rem;
-          }
-          .ads-container {
-            max-width: 90%;
-          }
-          .get-link-btn {
-            width: 90%;
-            font-size: 1rem;
-          }
         }
       `}</style>
     </div>
