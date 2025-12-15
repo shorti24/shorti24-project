@@ -9,7 +9,7 @@ export default function Redirect() {
   const [loading, setLoading] = useState(true);
   const [showButton, setShowButton] = useState(false);
 
-  // Fetch original URL + increment clicks
+  // Fetch original URL and increment clicks
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -38,6 +38,7 @@ export default function Redirect() {
         })
         .eq("id", data.id);
     };
+
     fetchUrl();
   }, [code]);
 
@@ -45,7 +46,7 @@ export default function Redirect() {
   useEffect(() => {
     if (!originalUrl) return;
     const interval = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
           setShowButton(true);
@@ -57,11 +58,11 @@ export default function Redirect() {
     return () => clearInterval(interval);
   }, [originalUrl]);
 
-  // Inject banner & social bar during countdown
+  // Inject Banner & Social Bar ads
   useEffect(() => {
     if (!originalUrl) return;
 
-    // Banner
+    // Banner 300x250
     const bannerContainer = document.createElement("div");
     bannerContainer.style.display = "flex";
     bannerContainer.style.justifyContent = "center";
@@ -79,7 +80,7 @@ export default function Redirect() {
       <script type="text/javascript" src="https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js"></script>
     `;
 
-    // Social bar
+    // Social Bar
     const socialContainer = document.createElement("div");
     socialContainer.style.display = "flex";
     socialContainer.style.justifyContent = "center";
@@ -100,18 +101,21 @@ export default function Redirect() {
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Popunder in background tab (100% working)
-    const popunder = window.open(
+    // Open Popunder ad in same tab (browser may block background)
+    const popunderWindow = window.open(
       "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js",
       "_blank",
       "noopener,noreferrer"
     );
-    if (popunder) popunder.blur();
 
-    // Open original URL in new tab
-    let finalUrl = originalUrl;
-    if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
-    window.open(finalUrl, "_blank");
+    if (popunderWindow) popunderWindow.focus();
+
+    // Open original URL after short delay
+    setTimeout(() => {
+      let finalUrl = originalUrl;
+      if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
+      window.open(finalUrl, "_blank");
+    }, 300);
   };
 
   if (loading)
