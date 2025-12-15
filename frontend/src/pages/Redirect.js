@@ -6,10 +6,8 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [counter, setCounter] = useState(8);
-  const [showButton, setShowButton] = useState(false);
 
-  // Fetch short URL
+  // Fetch the original URL from Supabase
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -39,14 +37,13 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Load popup ad script
+  // Load Adstra pop-up ad script
   useEffect(() => {
     if (!originalUrl) return;
 
     const script = document.createElement("script");
-    script.src = "https://js.onclckmn.com/static/onclicka.js";
+    script.src = "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
     script.async = true;
-    script.setAttribute("data-admpid", "402245");
 
     document.body.appendChild(script);
 
@@ -55,62 +52,57 @@ export default function Redirect() {
     };
   }, [originalUrl]);
 
-  // Countdown timer
+  // Redirect to the original URL after ad script is loaded
   useEffect(() => {
-    if (counter <= 0) {
-      setShowButton(true);
-      return;
-    }
+    if (!originalUrl) return;
 
-    const timer = setTimeout(() => {
-      setCounter((prev) => prev - 1);
-    }, 1000);
+    const redirectTimeout = setTimeout(() => {
+      let finalUrl = originalUrl;
+      if (!/^https?:\/\//i.test(finalUrl)) {
+        finalUrl = "https://" + finalUrl;
+      }
+      window.location.href = finalUrl;
+    }, 3000); // 3 seconds delay for ad pop-up to show
 
-    return () => clearTimeout(timer);
-  }, [counter]);
-
-  const handleGetLink = () => {
-    let finalUrl = originalUrl;
-    if (!/^https?:\/\//i.test(finalUrl)) {
-      finalUrl = "https://" + finalUrl;
-    }
-
-    window.location.href = finalUrl;
-  };
+    return () => clearTimeout(redirectTimeout);
+  }, [originalUrl]);
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <h2>Loading...</h2>
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+        color: "#fff",
+        fontFamily: "'Inter', sans-serif",
+        textAlign: "center",
+        padding: "20px",
+        overflow: "hidden"
+      }}>
+        <h1 style={{ fontSize: "48px", fontWeight: "700", letterSpacing: "2px", marginBottom: "20px" }}>Loading...</h1>
+        <p style={{ fontSize: "20px", opacity: 0.8, marginBottom: "40px" }}>Please wait while we prepare your link</p>
+        <div style={{
+          width: "80px",
+          height: "80px",
+          border: "8px solid rgba(255, 255, 255, 0.2)",
+          borderTop: "8px solid #22c55e",
+          borderRadius: "50%",
+          animation: "spin 1s linear infinite"
+        }} />
+        <style>
+          {`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}
+        </style>
       </div>
     );
   }
 
-  return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 20 }}>
-      {!showButton ? (
-        <>
-          <h2>Please wait</h2>
-          <p>Your link will be ready in</p>
-          <h1>{counter}</h1>
-          <p>seconds</p>
-        </>
-      ) : (
-        <button
-          onClick={handleGetLink}
-          style={{
-            padding: "14px 30px",
-            background: "#22c55e",
-            color: "#fff",
-            fontSize: "18px",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
-          Get Link
-        </button>
-      )}
-    </div>
-  );
+  return null; // No UI needed as redirect happens automatically
 }
