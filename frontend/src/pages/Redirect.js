@@ -6,6 +6,8 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const fetchUrl = async () => {
@@ -32,37 +34,142 @@ export default function Redirect() {
           earnings: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
         })
         .eq("id", data.id);
-
-      // 👉 নতুন ট্যাবে ads-banner.html খুলে দাও
-      window.open(`/ads-banner.html?url=${encodeURIComponent(data.original_url)}`, "_blank");
     };
 
     fetchUrl();
   }, [code]);
 
+  // Countdown timer
+  useEffect(() => {
+    if (!loading) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setReady(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [loading]);
+
+  const handleGetLink = () => {
+    if (!ready) return;
+
+    // 👉 Pop Ads trigger
+    if (window._pop && typeof window._pop.open === "function") {
+      window._pop.open();
+    }
+
+    // 👉 Redirect to original link from DB
+    let finalUrl = originalUrl;
+    if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
+    window.location.href = decodeURIComponent(finalUrl);
+  };
+
   if (loading) {
-    return <h1>Preparing your link…</h1>;
+    return (
+      <div style={styles.wrapper}>
+        <h1 style={styles.title}>Preparing your link…</h1>
+        <div style={styles.spinner}></div>
+      </div>
+    );
   }
 
+  useEffect(() => {
+    // ✅ Inject Banner Ads, Social Bar Ads, Pop Ads scripts dynamically
+    // Banner Ads config
+    const bannerConfig = document.createElement("script");
+    bannerConfig.innerHTML = `
+      atOptions = {
+        'key' : '5e631078d999c49a9297761881a85126',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    `;
+    document.body.appendChild(bannerConfig);
+
+    const bannerScript = document.createElement("script");
+    bannerScript.src =
+      "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
+    document.body.appendChild(bannerScript);
+
+    // Social Bar Ads
+    const socialScript = document.createElement("script");
+    socialScript.src =
+      "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
+    document.body.appendChild(socialScript);
+
+    // Pop Ads
+    const popScript = document.createElement("script");
+    popScript.src =
+      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
+    document.body.appendChild(popScript);
+  }, []);
+
   return (
-    <div style={{ textAlign: "center", marginTop: "40vh", color: "#fff", background: "#0f2027" }}>
-      <h1>Showing Pop Ads…</h1>
+    <div style={styles.wrapper}>
+      <h1 style={styles.title}>Your Link is Ready</h1>
+      <p style={styles.sub}>Please wait {timeLeft} seconds…</p>
 
-      {/* ✅ Pop Ads Script (Current Tab) */}
-      <script
-        type="text/javascript"
-        src="https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js"
-      ></script>
+      {/* Banner Ads placeholder */}
+      <div id="banner-ads" style={{ margin: "20px" }}></div>
 
-      <script>
-        {`
-          setTimeout(() => {
-            if (window._pop && typeof window._pop.open === "function") {
-              window._pop.open();
-            }
-          }, 1000);
-        `}
-      </script>
+      {/* Get Link Button */}
+      <button
+        style={{
+          ...styles.button,
+          opacity: ready ? 1 : 0.5,
+          cursor: ready ? "pointer" : "not-allowed",
+        }}
+        onClick={handleGetLink}
+        disabled={!ready}
+      >
+        Get Link
+      </button>
+
+      {/* Social Bar Ads placeholder */}
+      <div id="social-ads" style={{ marginTop: "40px" }}></div>
     </div>
   );
 }
+
+const styles = {
+  wrapper: {
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    color: "#fff",
+    fontFamily: "Inter, sans-serif",
+    gap: "20px",
+    background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
+  },
+  title: { fontSize: "38px", fontWeight: "700" },
+  sub: { fontSize: "18px", opacity: 0.85 },
+  button: {
+    padding: "16px 46px",
+    fontSize: "20px",
+    fontWeight: "600",
+    border: "none",
+    borderRadius: "14px",
+    color: "#fff",
+    background: "linear-gradient(90deg,#22c55e,#16a34a)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
+  },
+  spinner: {
+    width: "70px",
+    height: "70px",
+    border: "7px solid rgba(255,255,255,.2)",
+    borderTop: "7px solid #22c55e",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite",
+  },
+};
