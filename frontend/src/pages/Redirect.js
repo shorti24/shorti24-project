@@ -6,9 +6,10 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [counter, setCounter] = useState(8);
   const [showButton, setShowButton] = useState(false);
 
-  // Fetch original URL
+  // Fetch short URL
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -19,7 +20,6 @@ export default function Redirect() {
 
       if (error || !data) {
         alert("Short URL not found!");
-        setLoading(false);
         return;
       }
 
@@ -32,82 +32,80 @@ export default function Redirect() {
           clicks: data.clicks + 1,
           total_valid_clicks: data.total_valid_clicks + 1,
           earnings: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
-          total_user_earning: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
-          total_platform_earning: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate * 0.3,
         })
         .eq("id", data.id);
     };
+
     fetchUrl();
   }, [code]);
 
-  // Inject video ad immediately
+  // Load popup ad script
   useEffect(() => {
     if (!originalUrl) return;
 
-    // Video ad container
-    const adContainer = document.createElement("div");
-    adContainer.id = "video-ad-container";
-    adContainer.style.width = "100%";
-    adContainer.style.maxWidth = "600px";
-    adContainer.style.margin = "50px auto";
-    adContainer.style.textAlign = "center";
+    const script = document.createElement("script");
+    script.src = "https://js.onclckmn.com/static/onclicka.js";
+    script.async = true;
+    script.setAttribute("data-admpid", "402245");
 
-    document.body.appendChild(adContainer);
-
-    // Inject OnClck video ad script
-    const videoAd = document.createElement("script");
-    videoAd.src = "https://js.onclckmn.com/static/onclicka.js";
-    videoAd.async = true;
-    videoAd.setAttribute("data-admpid", "402247");
-
-    // Listen for ad end to show Get Link button
-    videoAd.onload = () => {
-      // OnClck ad usually fires automatically, but we simulate "ad finished" after 30s
-      setTimeout(() => {
-        setShowButton(true);
-      }, 30000); // 30 seconds
-    };
-
-    adContainer.appendChild(videoAd);
+    document.body.appendChild(script);
 
     return () => {
-      if (adContainer) document.body.removeChild(adContainer);
+      document.body.removeChild(script);
     };
   }, [originalUrl]);
 
-  const handleGetLink = () => {
-    if (!originalUrl) return;
+  // Countdown timer
+  useEffect(() => {
+    if (counter <= 0) {
+      setShowButton(true);
+      return;
+    }
 
+    const timer = setTimeout(() => {
+      setCounter((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [counter]);
+
+  const handleGetLink = () => {
     let finalUrl = originalUrl;
-    if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
-    window.open(finalUrl, "_blank");
+    if (!/^https?:\/\//i.test(finalUrl)) {
+      finalUrl = "https://" + finalUrl;
+    }
+
+    window.location.href = finalUrl;
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
         <h2>Loading...</h2>
       </div>
     );
+  }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "20px", textAlign: "center" }}>
-      {showButton && (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: 20 }}>
+      {!showButton ? (
+        <>
+          <h2>Please wait</h2>
+          <p>Your link will be ready in</p>
+          <h1>{counter}</h1>
+          <p>seconds</p>
+        </>
+      ) : (
         <button
           onClick={handleGetLink}
           style={{
-            width: "100%",
-            maxWidth: "300px",
-            padding: "12px 20px",
-            backgroundColor: "#3B82F6",
+            padding: "14px 30px",
+            background: "#22c55e",
             color: "#fff",
-            fontWeight: "600",
-            borderRadius: "8px",
+            fontSize: "18px",
             border: "none",
-            fontSize: "1rem",
+            borderRadius: "8px",
             cursor: "pointer",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-            marginTop: "20px",
           }}
         >
           Get Link
