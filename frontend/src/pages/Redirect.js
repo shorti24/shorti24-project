@@ -7,7 +7,8 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [customMessage, setCustomMessage] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [ready, setReady] = useState(false); // 15s পরে true হবে
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const fetchUrl = async () => {
@@ -26,6 +27,7 @@ export default function Redirect() {
       setCustomMessage(data.custom_message);
       setLoading(false);
 
+      // clicks update
       await supabase
         .from("short_urls")
         .update({
@@ -34,29 +36,36 @@ export default function Redirect() {
           earnings: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
         })
         .eq("id", data.id);
+
+      // 👉 নতুন ট্যাবে ads.html খুলে দাও
+      window.open(`/ads.html?url=${encodeURIComponent(data.original_url)}`, "_blank");
     };
 
     fetchUrl();
   }, [code]);
 
-  // 15s পরে auto redirect
+  // Countdown timer
   useEffect(() => {
-    if (!originalUrl) return;
-    const timer = setTimeout(() => {
-      setReady(true);
-      // Auto redirect
-      let finalUrl = originalUrl;
-      if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
-      window.location.href = `/go.html?url=${encodeURIComponent(finalUrl)}`;
-    }, 15000);
-    return () => clearTimeout(timer);
-  }, [originalUrl]);
+    if (!loading) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setReady(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [loading]);
 
   const handleGetLink = () => {
-    if (!ready) return; // 15s আগে কাজ করবে না
+    if (!ready) return;
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
-    window.location.href = `/go.html?url=${encodeURIComponent(finalUrl)}`;
+    window.location.href = decodeURIComponent(finalUrl);
   };
 
   if (loading) {
@@ -72,11 +81,28 @@ export default function Redirect() {
     <div style={styles.wrapper}>
       <h1 style={styles.title}>Your link is ready</h1>
       {customMessage && <p style={styles.custom}>{customMessage}</p>}
-      <p style={styles.sub}>
-        Please wait 15 seconds while ads are shown.  
-        After that you will be redirected automatically,  
-        or you can click the button below.
-      </p>
+      <p style={styles.sub}>Please wait {timeLeft} seconds…</p>
+
+      {/* Banner Ads (Top) */}
+      <div style={{ margin: "20px" }}>
+        <script type="text/javascript">
+          {`
+            atOptions = {
+              'key' : '5e631078d999c49a9297761881a85126',
+              'format' : 'iframe',
+              'height' : 250,
+              'width' : 300,
+              'params' : {}
+            };
+          `}
+        </script>
+        <script
+          type="text/javascript"
+          src="https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js"
+        ></script>
+      </div>
+
+      {/* Get Link Button (Middle) */}
       <button
         style={{
           ...styles.button,
@@ -88,6 +114,14 @@ export default function Redirect() {
       >
         Get Link
       </button>
+
+      {/* Social Bar Ads (Bottom) */}
+      <div style={{ marginTop: "40px" }}>
+        <script
+          type="text/javascript"
+          src="https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js"
+        ></script>
+      </div>
     </div>
   );
 }
@@ -106,7 +140,7 @@ const styles = {
     background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
   },
   title: { fontSize: "38px", fontWeight: "700" },
-  sub: { fontSize: "18px", opacity: 0.85, maxWidth: "600px" },
+  sub: { fontSize: "18px", opacity: 0.85 },
   custom: { fontSize: "20px", fontWeight: "600", color: "#facc15" },
   button: {
     padding: "16px 46px",
