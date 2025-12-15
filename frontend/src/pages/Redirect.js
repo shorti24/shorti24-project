@@ -8,10 +8,8 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showButton, setShowButton] = useState(false);
-  const [adsProvider, setAdsProvider] = useState(null);
-  const [cpmRate, setCpmRate] = useState(0);
 
-  // Fetch original URL + ads provider
+  // Fetch original URL
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -27,8 +25,6 @@ export default function Redirect() {
       }
 
       setOriginalUrl(data.original_url);
-      setAdsProvider(data.ads_provider);
-      setCpmRate(data.cpm_rate);
       setLoading(false);
 
       // Increment clicks & earnings
@@ -63,21 +59,37 @@ export default function Redirect() {
     return () => clearInterval(interval);
   }, [originalUrl]);
 
+  // Inject Banner & Social Bar ads during countdown
+  useEffect(() => {
+    if (!originalUrl) return;
+
+    // Banner ad
+    const bannerScript = document.createElement("script");
+    bannerScript.src =
+      "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
+    bannerScript.async = true;
+    document.body.appendChild(bannerScript);
+
+    // Social bar ad
+    const socialScript = document.createElement("script");
+    socialScript.src =
+      "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
+    socialScript.async = true;
+    document.body.appendChild(socialScript);
+
+    return () => {
+      document.body.removeChild(bannerScript);
+      document.body.removeChild(socialScript);
+    };
+  }, [originalUrl]);
+
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Open country-specific popunder
-    const adsScripts = {
-      HighCPMNetworkUS: "https://highcpm-us.example.com/ad.js",
-      HighCPMNetworkUK: "https://highcpm-uk.example.com/ad.js",
-      HighCPMNetworkCA: "https://highcpm-ca.example.com/ad.js",
-      HighCPMNetworkIN: "https://highcpm-in.example.com/ad.js",
-      EffectiveGateCPM: "https://pl28250505.effectivegatecpm.com/03/75/9b/03759b546b28dc8e0d3721a29528b08c.js",
-    };
-
-    if (adsProvider && adsScripts[adsProvider]) {
-      window.open(adsScripts[adsProvider], "_self");
-    }
+    // Popunder ad
+    const popunderScript =
+      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
+    window.open(popunderScript, "_blank");
 
     // Open original URL
     let finalUrl = originalUrl;
@@ -87,38 +99,49 @@ export default function Redirect() {
 
   if (loading)
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <h2>Loading...</h2>
       </div>
     );
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "linear-gradient(135deg, #fff8e1, #ffd700)",
-      color: "#111827",
-      textAlign: "center",
-      padding: "40px"
-    }}>
-      <div style={{
-        width: "120px",
-        height: "120px",
-        borderRadius: "50%",
-        border: "8px solid #FFD700",
+    <div
+      style={{
+        minHeight: "100vh",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: "2.5rem",
-        fontWeight: "700",
-        color: "#FFD700",
-        marginBottom: "30px",
-        boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-        animation: "pulse 1s infinite",
-      }}>
+        background: "linear-gradient(135deg, #fff8e1, #ffd700)",
+        color: "#111827",
+        textAlign: "center",
+        padding: "40px",
+      }}
+    >
+      <div
+        style={{
+          width: "120px",
+          height: "120px",
+          borderRadius: "50%",
+          border: "8px solid #FFD700",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "2.5rem",
+          fontWeight: "700",
+          color: "#FFD700",
+          marginBottom: "30px",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+          animation: "pulse 1s infinite",
+        }}
+      >
         {countdown > 0 ? countdown : "⏱"}
       </div>
 
