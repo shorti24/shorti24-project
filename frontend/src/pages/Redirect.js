@@ -59,28 +59,19 @@ export default function Redirect() {
   const handleGetLink = () => {
     if (!ready) return;
 
-    // 👉 Pop Ads trigger
+    // 👉 Pop Ads trigger (must be on click)
     if (window._pop && typeof window._pop.open === "function") {
       window._pop.open();
     }
 
-    // 👉 Redirect to original link from DB
+    // 👉 Redirect to original link
     let finalUrl = originalUrl;
     if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
     window.location.href = decodeURIComponent(finalUrl);
   };
 
-  if (loading) {
-    return (
-      <div style={styles.wrapper}>
-        <h1 style={styles.title}>Preparing your link…</h1>
-        <div style={styles.spinner}></div>
-      </div>
-    );
-  }
-
+  // ✅ Inject ads scripts dynamically
   useEffect(() => {
-    // ✅ Inject Banner Ads, Social Bar Ads, Pop Ads scripts dynamically
     // Banner Ads config
     const bannerConfig = document.createElement("script");
     bannerConfig.innerHTML = `
@@ -92,18 +83,18 @@ export default function Redirect() {
         'params' : {}
       };
     `;
-    document.body.appendChild(bannerConfig);
+    document.getElementById("banner-ads").appendChild(bannerConfig);
 
     const bannerScript = document.createElement("script");
     bannerScript.src =
       "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
-    document.body.appendChild(bannerScript);
+    document.getElementById("banner-ads").appendChild(bannerScript);
 
     // Social Bar Ads
     const socialScript = document.createElement("script");
     socialScript.src =
       "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
-    document.body.appendChild(socialScript);
+    document.getElementById("social-ads").appendChild(socialScript);
 
     // Pop Ads
     const popScript = document.createElement("script");
@@ -111,6 +102,15 @@ export default function Redirect() {
       "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
     document.body.appendChild(popScript);
   }, []);
+
+  if (loading) {
+    return (
+      <div style={styles.wrapper}>
+        <h1 style={styles.title}>Preparing your link…</h1>
+        <div style={styles.spinner}></div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.wrapper}>
