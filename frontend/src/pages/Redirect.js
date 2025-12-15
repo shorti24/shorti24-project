@@ -6,6 +6,7 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showButton, setShowButton] = useState(false);
 
   // Fetch the original URL from Supabase
   useEffect(() => {
@@ -37,13 +38,19 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  // Load Adstra pop-up ad script
+  // Load Adstra pop-up script
   useEffect(() => {
     if (!originalUrl) return;
 
     const script = document.createElement("script");
     script.src = "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
     script.async = true;
+
+    script.onload = () => {
+      console.log("Adstra script loaded");
+      // Show the "Continue" button after script loads
+      setShowButton(true);
+    };
 
     document.body.appendChild(script);
 
@@ -52,20 +59,13 @@ export default function Redirect() {
     };
   }, [originalUrl]);
 
-  // Redirect to the original URL after ad script is loaded
-  useEffect(() => {
-    if (!originalUrl) return;
-
-    const redirectTimeout = setTimeout(() => {
-      let finalUrl = originalUrl;
-      if (!/^https?:\/\//i.test(finalUrl)) {
-        finalUrl = "https://" + finalUrl;
-      }
-      window.location.href = finalUrl;
-    }, 3000); // 3 seconds delay for ad pop-up to show
-
-    return () => clearTimeout(redirectTimeout);
-  }, [originalUrl]);
+  const handleRedirect = () => {
+    let finalUrl = originalUrl;
+    if (!/^https?:\/\//i.test(finalUrl)) {
+      finalUrl = "https://" + finalUrl;
+    }
+    window.location.href = finalUrl;
+  };
 
   if (loading) {
     return (
@@ -104,5 +104,47 @@ export default function Redirect() {
     );
   }
 
-  return null; // No UI needed as redirect happens automatically
+  // Show "Continue" button after Adstra script loads
+  return showButton ? (
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      background: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+      color: "#fff",
+      fontFamily: "'Inter', sans-serif",
+      textAlign: "center",
+      padding: "20px",
+    }}>
+      <h1 style={{ fontSize: "36px", fontWeight: "700", marginBottom: "20px" }}>Your link is ready!</h1>
+      <p style={{ fontSize: "18px", opacity: 0.8, marginBottom: "30px" }}>Click below to continue</p>
+      <button
+        onClick={handleRedirect}
+        style={{
+          padding: "16px 40px",
+          background: "linear-gradient(90deg, #22c55e, #16a34a)",
+          color: "#fff",
+          fontSize: "20px",
+          fontWeight: "600",
+          border: "none",
+          borderRadius: "12px",
+          cursor: "pointer",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
+          transition: "transform 0.2s, box-shadow 0.2s"
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.transform = "translateY(-3px)";
+          e.target.style.boxShadow = "0 12px 25px rgba(0,0,0,0.4)";
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.transform = "translateY(0)";
+          e.target.style.boxShadow = "0 8px 20px rgba(0,0,0,0.3)";
+        }}
+      >
+        Continue
+      </button>
+    </div>
+  ) : null;
 }
