@@ -62,32 +62,30 @@ export default function Redirect() {
   useEffect(() => {
     if (!originalUrl) return;
 
-    // Banner 300x250
-    const bannerScript = document.createElement("script");
-    bannerScript.type = "text/javascript";
-    bannerScript.src =
-      "https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js";
-    bannerScript.async = true;
-
-    // Social Bar
-    const socialScript = document.createElement("script");
-    socialScript.type = "text/javascript";
-    socialScript.src =
-      "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
-    socialScript.async = true;
-
-    // Container div for mobile-friendly centering
     const bannerContainer = document.createElement("div");
     bannerContainer.style.display = "flex";
     bannerContainer.style.justifyContent = "center";
     bannerContainer.style.margin = "20px 0";
-    bannerContainer.appendChild(bannerScript);
+    bannerContainer.innerHTML = `
+      <script type="text/javascript">
+        atOptions = {
+          'key' : '5e631078d999c49a9297761881a85126',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="https://nervesweedefeat.com/5e631078d999c49a9297761881a85126/invoke.js"></script>
+    `;
 
     const socialContainer = document.createElement("div");
     socialContainer.style.display = "flex";
     socialContainer.style.justifyContent = "center";
     socialContainer.style.margin = "20px 0";
-    socialContainer.appendChild(socialScript);
+    socialContainer.innerHTML = `
+      <script type="text/javascript" src="https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js"></script>
+    `;
 
     document.body.appendChild(bannerContainer);
     document.body.appendChild(socialContainer);
@@ -101,15 +99,20 @@ export default function Redirect() {
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Popunder ad
-    const popunderScript =
-      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
-    window.open(popunderScript, "_blank");
+    // Popunder in background tab
+    const popunder = window.open(
+      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js",
+      "_blank",
+      "noopener,noreferrer"
+    );
+    if (popunder) popunder.blur();
 
-    // Open original URL in new tab
-    let finalUrl = originalUrl;
-    if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
-    window.open(finalUrl, "_blank");
+    // Open original URL in new tab after short delay
+    setTimeout(() => {
+      let finalUrl = originalUrl;
+      if (!/^https?:\/\//i.test(originalUrl)) finalUrl = "https://" + originalUrl;
+      window.open(finalUrl, "_blank");
+    }, 500);
   };
 
   if (loading)
@@ -135,10 +138,9 @@ export default function Redirect() {
     >
       <div
         style={{
-          width: "100px",
-          height: "100px",
-          maxWidth: "25vw",
-          maxHeight: "25vw",
+          width: "25vw",
+          maxWidth: "120px",
+          aspectRatio: "1",
           borderRadius: "50%",
           border: "8px solid #FFD700",
           display: "flex",
