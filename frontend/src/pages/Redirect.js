@@ -7,9 +7,7 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* =====================
-     FETCH SHORT URL
-  ===================== */
+  // Fetch short URL
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -39,53 +37,25 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
-  /* =====================
-     SOCIAL BAR (FIRST PAGE)
-  ===================== */
+  // Social bar script
   useEffect(() => {
     if (!originalUrl) return;
-
     const social = document.createElement("script");
-    social.type = "text/javascript";
     social.src =
       "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
     social.async = true;
-
     document.body.appendChild(social);
-
-    return () => {
-      document.body.removeChild(social);
-    };
+    return () => document.body.removeChild(social);
   }, [originalUrl]);
 
-  /* =====================
-     POP ADS + REDIRECT
-  ===================== */
+  // Handle Get Link → redirect to go.html
   const handleGetLink = () => {
-    // 🔓 unlock popup permission (SAFE)
-    window.open("about:blank", "_blank");
+    let finalUrl = originalUrl;
+    if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
 
-    // 🔥 POP ADS SCRIPT (exact)
-    const popScript = document.createElement("script");
-    popScript.type = "text/javascript";
-    popScript.src =
-      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
-
-    document.body.appendChild(popScript);
-
-    // 🔁 redirect to original link
-    setTimeout(() => {
-      let finalUrl = originalUrl;
-      if (!/^https?:\/\//i.test(finalUrl)) {
-        finalUrl = "https://" + finalUrl;
-      }
-      window.location.href = finalUrl;
-    }, 1500);
+    window.location.href = `/go.html?url=${encodeURIComponent(finalUrl)}`;
   };
 
-  /* =====================
-     UI
-  ===================== */
   if (loading) {
     return (
       <div style={styles.wrapper}>
@@ -99,7 +69,6 @@ export default function Redirect() {
     <div style={styles.wrapper}>
       <h1 style={styles.title}>Your link is ready</h1>
       <p style={styles.sub}>Click the button to continue</p>
-
       <button style={styles.button} onClick={handleGetLink}>
         Get Link
       </button>
@@ -107,30 +76,21 @@ export default function Redirect() {
   );
 }
 
-/* =====================
-   PREMIUM UI
-===================== */
 const styles = {
   wrapper: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
+    textAlign: "center",
     color: "#fff",
     fontFamily: "Inter, sans-serif",
-    textAlign: "center",
     gap: "20px",
+    background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
   },
-  title: {
-    fontSize: "38px",
-    fontWeight: "700",
-  },
-  sub: {
-    opacity: 0.85,
-    fontSize: "18px",
-  },
+  title: { fontSize: "38px", fontWeight: "700" },
+  sub: { fontSize: "18px", opacity: 0.85 },
   button: {
     padding: "16px 46px",
     fontSize: "20px",
