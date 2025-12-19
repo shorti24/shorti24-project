@@ -4,12 +4,14 @@ import { useParams } from "react-router-dom";
 
 export default function Redirect() {
   const { code } = useParams();
-  const [originalUrl, setOriginalUrl] = useState(null);
+  const [originalUrl, setOriginalUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(15);
   const [ready, setReady] = useState(false);
-  const [clickedOnce, setClickedOnce] = useState(false);
 
+  /* =====================
+     FETCH SHORT URL
+  ====================== */
   useEffect(() => {
     const fetchUrl = async () => {
       const { data, error } = await supabase
@@ -19,7 +21,7 @@ export default function Redirect() {
         .single();
 
       if (error || !data) {
-        alert("Short URL not found!");
+        alert("Short URL not found");
         return;
       }
 
@@ -31,7 +33,8 @@ export default function Redirect() {
         .update({
           clicks: data.clicks + 1,
           total_valid_clicks: data.total_valid_clicks + 1,
-          earnings: ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
+          earnings:
+            ((data.total_valid_clicks + 1) / 1000) * data.cpm_rate,
         })
         .eq("id", data.id);
     };
@@ -39,6 +42,9 @@ export default function Redirect() {
     fetchUrl();
   }, [code]);
 
+  /* =====================
+     COUNTDOWN
+  ====================== */
   useEffect(() => {
     if (!loading) {
       const timer = setInterval(() => {
@@ -51,27 +57,24 @@ export default function Redirect() {
           return prev - 1;
         });
       }, 1000);
+
       return () => clearInterval(timer);
     }
   }, [loading]);
 
-  const handleGetLink = () => {
-    if (!ready) return;
-
-    if (!clickedOnce) {
-      if (window._pop && typeof window._pop.open === "function") {
-        window._pop.open();
-      }
-      alert("Ads opened. Please watch for 15 seconds, then return here and click again.");
-      setClickedOnce(true);
-    } else {
-      let finalUrl = originalUrl;
-      if (!/^https?:\/\//i.test(finalUrl)) finalUrl = "https://" + finalUrl;
-      window.location.href = decodeURIComponent(finalUrl);
-    }
-  };
-
+  /* =====================
+     ADS SCRIPTS
+     (FROM go.html)
+  ====================== */
   useEffect(() => {
+    // 🔥 POP ADS (from go.html)
+    const popScript = document.createElement("script");
+    popScript.type = "text/javascript";
+    popScript.src = "https://otieu.com/4/10066336";
+    popScript.async = true;
+    document.body.appendChild(popScript);
+
+    // 🔥 BANNER ADS
     const bannerEl = document.getElementById("banner-ads");
     if (bannerEl) {
       const bannerConfig = document.createElement("script");
@@ -92,6 +95,7 @@ export default function Redirect() {
       bannerEl.appendChild(bannerScript);
     }
 
+    // 🔥 SOCIAL / NATIVE ADS
     const socialEl = document.getElementById("social-ads");
     if (socialEl) {
       const socialScript = document.createElement("script");
@@ -99,13 +103,32 @@ export default function Redirect() {
         "https://nervesweedefeat.com/59/91/44/599144da0922a7186c15f24ecaceef31.js";
       socialEl.appendChild(socialScript);
     }
-
-    const popScript = document.createElement("script");
-    popScript.src =
-      "https://nervesweedefeat.com/78/02/b6/7802b6afc6dac57681cda3d7f8f60218.js";
-    document.body.appendChild(popScript);
   }, []);
 
+  /* =====================
+     GET LINK HANDLER
+  ====================== */
+  const handleGetLink = () => {
+    if (!ready) return;
+
+    // 🔥 Trigger pop ad
+    if (window._pop && typeof window._pop.open === "function") {
+      window._pop.open();
+    }
+
+    // 🔥 Redirect after short delay
+    setTimeout(() => {
+      let finalUrl = originalUrl;
+      if (!/^https?:\/\//i.test(finalUrl)) {
+        finalUrl = "https://" + finalUrl;
+      }
+      window.location.href = decodeURIComponent(finalUrl);
+    }, 800);
+  };
+
+  /* =====================
+     UI
+  ====================== */
   if (loading) {
     return (
       <div style={styles.wrapper}>
@@ -117,27 +140,37 @@ export default function Redirect() {
 
   return (
     <div style={styles.wrapper}>
-      <h1 style={styles.title}>Your Link is Ready</h1>
-      <p style={styles.sub}>Please wait {timeLeft} seconds…</p>
+      <h1 style={styles.title}>Your Link is Almost Ready</h1>
+      <p style={styles.sub}>
+        Ads help us keep this service free ❤️
+      </p>
+
+      <p style={styles.timer}>
+        {ready ? "You can continue now" : `Please wait ${timeLeft}s`}
+      </p>
+
       <div id="banner-ads" style={{ margin: "20px" }}></div>
+
       <button
         style={{
           ...styles.button,
-          opacity: ready ? 1 : 0.5,
+          opacity: ready ? 1 : 0.6,
           cursor: ready ? "pointer" : "not-allowed",
         }}
-        onClick={handleGetLink}
         disabled={!ready}
+        onClick={handleGetLink}
       >
-        {clickedOnce
-          ? "Click again to go to your link"
-          : "Click to open ads (watch 15 seconds)"}
+        Get Link 🔗
       </button>
+
       <div id="social-ads" style={{ marginTop: "40px" }}></div>
     </div>
   );
 }
 
+/* =====================
+   STYLES
+===================== */
 const styles = {
   wrapper: {
     minHeight: "100vh",
@@ -146,15 +179,26 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
+    gap: "18px",
     color: "#fff",
     fontFamily: "Inter, sans-serif",
-    gap: "20px",
     background: "linear-gradient(135deg,#0f2027,#203a43,#2c5364)",
   },
-  title: { fontSize: "38px", fontWeight: "700" },
-  sub: { fontSize: "18px", opacity: 0.85 },
+  title: {
+    fontSize: "36px",
+    fontWeight: "700",
+  },
+  sub: {
+    fontSize: "16px",
+    opacity: 0.85,
+  },
+  timer: {
+    fontSize: "20px",
+    fontWeight: "600",
+    color: "#22c55e",
+  },
   button: {
-    padding: "16px 46px",
+    padding: "16px 50px",
     fontSize: "20px",
     fontWeight: "600",
     border: "none",
