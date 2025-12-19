@@ -6,13 +6,12 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [error, setError] = useState("");
+  const [redirecting, setRedirecting] = useState(false);
 
   // =====================
   // FETCH ORIGINAL URL
   // =====================
   useEffect(() => {
-    console.log("Short code from URL:", code);
-
     if (!code) {
       setError("No short code found");
       return;
@@ -20,12 +19,10 @@ export default function Redirect() {
 
     const fetchUrl = async () => {
       const { data, error } = await supabase
-        .from("links")
+        .from("short_urls") // make sure table name matches
         .select("original_url")
         .eq("short_code", code)
         .single();
-
-      console.log("Supabase response:", data, error);
 
       if (error || !data?.original_url) {
         setError("Link not found");
@@ -42,33 +39,43 @@ export default function Redirect() {
   // ADS SCRIPTS
   // =====================
   useEffect(() => {
+    // Pop ad
     const popScript = document.createElement("script");
     popScript.src = "https://otieu.com/4/10066336";
     popScript.async = true;
     document.body.appendChild(popScript);
 
+    // Banner / other ads
     const qugeScript = document.createElement("script");
     qugeScript.src = "https://quge5.com/88/tag.min.js";
     qugeScript.async = true;
     qugeScript.setAttribute("data-zone", "194391");
     qugeScript.setAttribute("data-cfasync", "false");
     document.body.appendChild(qugeScript);
+
+    return () => {
+      document.body.removeChild(popScript);
+      document.body.removeChild(qugeScript);
+    };
   }, []);
 
   // =====================
-  // AUTO REDIRECT
+  // REDIRECT AFTER ADS
   // =====================
   useEffect(() => {
-    if (!originalUrl) return;
+    if (!originalUrl || error) return;
 
-    console.log("Redirecting to:", originalUrl);
+    // prevent multiple redirects
+    if (redirecting) return;
+    setRedirecting(true);
 
+    // wait 6 seconds before redirecting
     const timer = setTimeout(() => {
-      window.location.href = originalUrl;
-    }, 3000);
+      window.location.href = originalUrl; // redirect reliably
+    }, 6000);
 
     return () => clearTimeout(timer);
-  }, [originalUrl]);
+  }, [originalUrl, error, redirecting]);
 
   return (
     <div style={{ textAlign: "center", marginTop: "50px" }}>
@@ -77,10 +84,11 @@ export default function Redirect() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {!error && !originalUrl && <p>Loading link...</p>}
-      {originalUrl && <p>Redirecting...</p>}
+      {originalUrl && !redirecting && <p>Loading ads...</p>}
+      {originalUrl && redirecting && <p>Redirecting soon...</p>}
 
-      <div id="banner-ads"></div>
-      <div id="social-ads"></div>
+      <div id="banner-ads" style={{ marginTop: "20px" }}></div>
+      <div id="social-ads" style={{ marginTop: "20px" }}></div>
     </div>
   );
 }
