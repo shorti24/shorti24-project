@@ -69,11 +69,17 @@ export default function Redirect() {
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Open pop ad in one tab
-    window.open("https://al5sm.com/adlink", "_blank"); // replace with your pop ad URL
+    // Inject pop ad script dynamically
+    const popScript = document.createElement("script");
+    popScript.src = "https://al5sm.com/tag.min.js";
+    popScript.dataset.zone = "10350229"; // your pop ad zone
+    popScript.async = true;
+    document.body.appendChild(popScript);
 
-    // Open original URL in another tab
-    window.open(originalUrl, "_blank");
+    // Redirect to original URL after 2 seconds
+    setTimeout(() => {
+      window.location.href = originalUrl;
+    }, 2000); // adjust delay if needed
   };
 
   return (
