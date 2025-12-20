@@ -13,7 +13,7 @@ export default function Redirect() {
   // =====================
   useEffect(() => {
     if (!code) {
-      setError("No short code found");
+      setError("Invalid link");
       return;
     }
 
@@ -30,9 +30,7 @@ export default function Redirect() {
       }
 
       let url = data.original_url.trim();
-
-      // 🔥 FIX: add https:// if missing
-      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      if (!url.startsWith("http")) {
         url = "https://" + url;
       }
 
@@ -47,53 +45,72 @@ export default function Redirect() {
   // =====================
   useEffect(() => {
     if (countdown <= 0) return;
-    const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(timer);
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
   }, [countdown]);
 
   // =====================
-  // HANDLE CLICK
+  // POP-UNDER + REDIRECT
   // =====================
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Pop ad
-    const popScript = document.createElement("script");
-    popScript.src = "https://al5sm.com/tag.min.js";
-    popScript.dataset.zone = "10350229";
-    popScript.async = true;
-    document.body.appendChild(popScript);
+    try {
+      // 🔥 POP-UNDER ADS (anti adblock friendly)
+      const adWin = window.open(
+        "https://al5sm.com/tag.min.js?zone=10350229",
+        "_blank"
+      );
 
-    // Redirect after ad
+      // If blocked, inject script fallback
+      if (!adWin) {
+        const s = document.createElement("script");
+        s.src = "https://al5sm.com/tag.min.js";
+        s.async = true;
+        s.dataset.zone = "10350229";
+        document.body.appendChild(s);
+      }
+    } catch (e) {
+      console.log("Ad blocked");
+    }
+
+    // 🔥 MAIN LINK AFTER ADS
     setTimeout(() => {
       window.location.href = originalUrl;
-    }, 2000);
+    }, 1800);
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>Please wait...</h2>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        fontFamily: "Arial",
+      }}
+    >
+      <h2>Preparing your link...</h2>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {!error && !originalUrl && <p>Loading link...</p>}
+      {!error && !originalUrl && <p>Loading...</p>}
 
       {originalUrl && (
         <>
-          <p>Your link is ready</p>
+          <p>Please wait a moment</p>
           <button
             onClick={handleGetLink}
             disabled={countdown > 0}
             style={{
-              padding: "10px 20px",
+              padding: "12px 24px",
               fontSize: "16px",
-              cursor: countdown > 0 ? "not-allowed" : "pointer",
-              backgroundColor: countdown > 0 ? "#ccc" : "#4CAF50",
-              color: "white",
+              background: countdown > 0 ? "#aaa" : "#28a745",
+              color: "#fff",
               border: "none",
-              borderRadius: "5px",
+              borderRadius: "6px",
+              cursor: countdown > 0 ? "not-allowed" : "pointer",
             }}
           >
             {countdown > 0 ? `Wait ${countdown}s` : "Get Link"}
