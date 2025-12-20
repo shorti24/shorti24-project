@@ -6,8 +6,8 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [error, setError] = useState("");
-  const [countdown, setCountdown] = useState(5);
   const [clicked, setClicked] = useState(false);
+  const [firstClickDone, setFirstClickDone] = useState(false);
 
   // =====================
   // FETCH ORIGINAL URL
@@ -34,79 +34,52 @@ export default function Redirect() {
   }, [code]);
 
   // =====================
-  // COUNTDOWN
+  // BUTTON CLICK HANDLER
   // =====================
-  useEffect(() => {
-    if (countdown <= 0) return;
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [countdown]);
-
-  // =====================
-  // ADS TAB + MAIN LINK TAB
-  // =====================
-  const handleGetLink = () => {
+  const handleClick = (type) => {
     if (!originalUrl || clicked) return;
     setClicked(true);
 
-    // 🔹 1. ADS TAB (background)
-    const adWin = window.open("about:blank", "_blank", "noopener,noreferrer");
-    if (adWin) {
-      adWin.location.href = "https://al5sm.com/tag.min.js?zone=10350229";
-    } else {
-      // Fallback if popup blocked
-      const s = document.createElement("script");
-      s.src = "https://al5sm.com/tag.min.js";
-      s.async = true;
-      s.dataset.zone = "10350229";
-      document.body.appendChild(s);
-    }
-
-    // 🔹 2. MAIN LINK TAB (foreground)
-    setTimeout(() => {
+    if (type === "ads") {
+      // 🔹 ADS
+      const adWin = window.open("about:blank", "_blank", "noopener,noreferrer");
+      if (adWin) {
+        adWin.location.href = "https://al5sm.com/tag.min.js?zone=10350229";
+      } else {
+        const s = document.createElement("script");
+        s.src = "https://al5sm.com/tag.min.js";
+        s.async = true;
+        s.dataset.zone = "10350229";
+        document.body.appendChild(s);
+      }
+      setFirstClickDone(true);
+      setClicked(false); // allow next click
+    } else if (type === "main" && firstClickDone) {
+      // 🔹 MAIN LINK
       window.open(originalUrl, "_blank");
-    }, 500); // small delay for ad tab trigger
+    }
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Arial",
-      }}
-    >
-      <h2>Preparing your link…</h2>
-
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Arial" }}>
+      <h2>Choose your link…</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
-
       {originalUrl && (
-        <button
-          onClick={handleGetLink}
-          disabled={countdown > 0 || clicked}
-          style={{
-            padding: "12px 24px",
-            fontSize: "16px",
-            background:
-              countdown > 0 || clicked ? "#aaa" : "#28a745",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor:
-              countdown > 0 || clicked
-                ? "not-allowed"
-                : "pointer",
-          }}
-        >
-          {countdown > 0
-            ? `Wait ${countdown}s`
-            : clicked
-            ? "Redirecting…"
-            : "Get Link"}
-        </button>
+        <>
+          <button
+            onClick={() => handleClick("ads")}
+            style={{ padding: "12px 24px", margin: "8px", fontSize: "16px", background: "#28a745", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}
+          >
+            Get ADS
+          </button>
+          <button
+            onClick={() => handleClick("main")}
+            style={{ padding: "12px 24px", margin: "8px", fontSize: "16px", background: "#007bff", color: "#fff", border: "none", borderRadius: "6px", cursor: firstClickDone ? "pointer" : "not-allowed" }}
+            disabled={!firstClickDone}
+          >
+            Get Main Link
+          </button>
+        </>
       )}
     </div>
   );
