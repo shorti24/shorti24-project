@@ -6,7 +6,7 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [error, setError] = useState("");
-  const [countdown, setCountdown] = useState(5); // countdown before button is enabled
+  const [countdown, setCountdown] = useState(5);
 
   // =====================
   // FETCH ORIGINAL URL
@@ -29,57 +29,47 @@ export default function Redirect() {
         return;
       }
 
-      setOriginalUrl(data.original_url);
+      let url = data.original_url.trim();
+
+      // 🔥 FIX: add https:// if missing
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+      }
+
+      setOriginalUrl(url);
     };
 
     fetchUrl();
   }, [code]);
 
   // =====================
-  // ADS SCRIPT (optional banner)
-  // =====================
-  useEffect(() => {
-    const bannerScript = document.createElement("script");
-    bannerScript.src = "https://quge5.com/88/tag.min.js"; // example banner ad
-    bannerScript.async = true;
-    bannerScript.setAttribute("data-zone", "194391");
-    bannerScript.setAttribute("data-cfasync", "false");
-    document.body.appendChild(bannerScript);
-
-    return () => {
-      document.body.removeChild(bannerScript);
-    };
-  }, []);
-
-  // =====================
-  // COUNTDOWN BEFORE GET LINK BUTTON
+  // COUNTDOWN
   // =====================
   useEffect(() => {
     if (countdown <= 0) return;
     const timer = setInterval(() => {
       setCountdown((prev) => prev - 1);
     }, 1000);
-
     return () => clearInterval(timer);
   }, [countdown]);
 
   // =====================
-  // HANDLE GET LINK CLICK
+  // HANDLE CLICK
   // =====================
   const handleGetLink = () => {
     if (!originalUrl) return;
 
-    // Inject pop ad script dynamically
+    // Pop ad
     const popScript = document.createElement("script");
     popScript.src = "https://al5sm.com/tag.min.js";
-    popScript.dataset.zone = "10350229"; // your pop ad zone
+    popScript.dataset.zone = "10350229";
     popScript.async = true;
     document.body.appendChild(popScript);
 
-    // Redirect to original URL after 2 seconds
+    // Redirect after ad
     setTimeout(() => {
       window.location.href = originalUrl;
-    }, 2000); // adjust delay if needed
+    }, 2000);
   };
 
   return (
@@ -92,7 +82,7 @@ export default function Redirect() {
 
       {originalUrl && (
         <>
-          <p>Click the button below to access your link:</p>
+          <p>Your link is ready</p>
           <button
             onClick={handleGetLink}
             disabled={countdown > 0}
@@ -104,16 +94,12 @@ export default function Redirect() {
               color: "white",
               border: "none",
               borderRadius: "5px",
-              marginTop: "10px",
             }}
           >
             {countdown > 0 ? `Wait ${countdown}s` : "Get Link"}
           </button>
         </>
       )}
-
-      <div id="banner-ads" style={{ marginTop: "20px" }}></div>
-      <div id="social-ads" style={{ marginTop: "20px" }}></div>
     </div>
   );
 }
