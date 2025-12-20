@@ -43,20 +43,29 @@ export default function Redirect() {
   }, [countdown]);
 
   // =====================
-  // 1 TAB ADS + 1 TAB MAIN
+  // ADS TAB + MAIN LINK TAB
   // =====================
   const handleGetLink = () => {
     if (!originalUrl || clicked) return;
     setClicked(true);
 
-    // 🔥 ADS TAB
-    window.open(
-      "https://al5sm.com/tag.min.js?zone=10350229",
-      "_blank"
-    );
+    // 🔹 1. ADS TAB (background)
+    const adWin = window.open("about:blank", "_blank", "noopener,noreferrer");
+    if (adWin) {
+      adWin.location.href = "https://al5sm.com/tag.min.js?zone=10350229";
+    } else {
+      // Fallback if popup blocked
+      const s = document.createElement("script");
+      s.src = "https://al5sm.com/tag.min.js";
+      s.async = true;
+      s.dataset.zone = "10350229";
+      document.body.appendChild(s);
+    }
 
-    // 🔥 MAIN LINK TAB
-    window.open(originalUrl, "_blank");
+    // 🔹 2. MAIN LINK TAB (foreground)
+    setTimeout(() => {
+      window.open(originalUrl, "_blank");
+    }, 500); // small delay for ad tab trigger
   };
 
   return (
@@ -92,7 +101,11 @@ export default function Redirect() {
                 : "pointer",
           }}
         >
-          {countdown > 0 ? `Wait ${countdown}s` : "Get Link"}
+          {countdown > 0
+            ? `Wait ${countdown}s`
+            : clicked
+            ? "Redirecting…"
+            : "Get Link"}
         </button>
       )}
     </div>
