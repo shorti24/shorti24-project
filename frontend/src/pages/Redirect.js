@@ -7,32 +7,25 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(5);
+  const [clicked, setClicked] = useState(false);
 
   // =====================
   // FETCH ORIGINAL URL
   // =====================
   useEffect(() => {
-    if (!code) {
-      setError("Invalid link");
-      return;
-    }
+    if (!code) return setError("Invalid link");
 
     const fetchUrl = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("short_urls")
         .select("original_url")
         .eq("short_code", code)
         .single();
 
-      if (error || !data?.original_url) {
-        setError("Link not found");
-        return;
-      }
+      if (!data?.original_url) return setError("Link not found");
 
       let url = data.original_url.trim();
-      if (!url.startsWith("http")) {
-        url = "https://" + url;
-      }
+      if (!url.startsWith("http")) url = "https://" + url;
 
       setOriginalUrl(url);
     };
@@ -50,34 +43,20 @@ export default function Redirect() {
   }, [countdown]);
 
   // =====================
-  // POP-UNDER + REDIRECT
+  // 1 TAB ADS + 1 TAB MAIN
   // =====================
   const handleGetLink = () => {
-    if (!originalUrl) return;
+    if (!originalUrl || clicked) return;
+    setClicked(true);
 
-    try {
-      // 🔥 POP-UNDER ADS (anti adblock friendly)
-      const adWin = window.open(
-        "https://al5sm.com/tag.min.js?zone=10350229",
-        "_blank"
-      );
+    // 🔥 ADS TAB
+    window.open(
+      "https://al5sm.com/tag.min.js?zone=10350229",
+      "_blank"
+    );
 
-      // If blocked, inject script fallback
-      if (!adWin) {
-        const s = document.createElement("script");
-        s.src = "https://al5sm.com/tag.min.js";
-        s.async = true;
-        s.dataset.zone = "10350229";
-        document.body.appendChild(s);
-      }
-    } catch (e) {
-      console.log("Ad blocked");
-    }
-
-    // 🔥 MAIN LINK AFTER ADS
-    setTimeout(() => {
-      window.location.href = originalUrl;
-    }, 1800);
+    // 🔥 MAIN LINK TAB
+    window.open(originalUrl, "_blank");
   };
 
   return (
@@ -85,37 +64,36 @@ export default function Redirect() {
       style={{
         minHeight: "100vh",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        flexDirection: "column",
         fontFamily: "Arial",
       }}
     >
-      <h2>Preparing your link...</h2>
+      <h2>Preparing your link…</h2>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {!error && !originalUrl && <p>Loading...</p>}
-
       {originalUrl && (
-        <>
-          <p>Please wait a moment</p>
-          <button
-            onClick={handleGetLink}
-            disabled={countdown > 0}
-            style={{
-              padding: "12px 24px",
-              fontSize: "16px",
-              background: countdown > 0 ? "#aaa" : "#28a745",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              cursor: countdown > 0 ? "not-allowed" : "pointer",
-            }}
-          >
-            {countdown > 0 ? `Wait ${countdown}s` : "Get Link"}
-          </button>
-        </>
+        <button
+          onClick={handleGetLink}
+          disabled={countdown > 0 || clicked}
+          style={{
+            padding: "12px 24px",
+            fontSize: "16px",
+            background:
+              countdown > 0 || clicked ? "#aaa" : "#28a745",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor:
+              countdown > 0 || clicked
+                ? "not-allowed"
+                : "pointer",
+          }}
+        >
+          {countdown > 0 ? `Wait ${countdown}s` : "Get Link"}
+        </button>
       )}
     </div>
   );
