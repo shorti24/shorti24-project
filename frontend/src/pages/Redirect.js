@@ -7,7 +7,10 @@ export default function Redirect() {
   const [originalUrl, setOriginalUrl] = useState(null);
   const [error, setError] = useState("");
   const [clicked, setClicked] = useState(false);
-  const [firstClickDone, setFirstClickDone] = useState(false);
+  const [adsStep, setAdsStep] = useState(0); // 0 = none, 1 = ads1 done, 2 = ads2 done
+
+  const ADS2_LINK =
+    "https://creeduserbane.com/q2zh71eki?key=14b197e2bcc7866c4c1b4c4561a12ab4";
 
   // =====================
   // FETCH ORIGINAL URL
@@ -34,48 +37,113 @@ export default function Redirect() {
   }, [code]);
 
   // =====================
-  // BUTTON CLICK HANDLER
+  // ADS 1 (OLD TAG ADS)
   // =====================
-  const handleClick = (type) => {
-    if (!originalUrl || clicked) return;
-    setClicked(true);
-
-    if (type === "ads") {
-      // 🔹 ADS
-      const adWin = window.open("about:blank", "_blank", "noopener,noreferrer");
-      if (adWin) {
-        adWin.location.href = "https://al5sm.com/tag.min.js?zone=10350229";
-      } else {
-        const s = document.createElement("script");
-        s.src = "https://al5sm.com/tag.min.js";
-        s.async = true;
-        s.dataset.zone = "10350229";
-        document.body.appendChild(s);
-      }
-      setFirstClickDone(true);
-      setClicked(false); // allow next click
-    } else if (type === "main" && firstClickDone) {
-      // 🔹 MAIN LINK
-      window.open(originalUrl, "_blank");
+  const openAds1 = () => {
+    const w = window.open("about:blank", "_blank", "noopener,noreferrer");
+    if (w) {
+      w.document.write(`
+        <html>
+          <body>
+            <script src="https://al5sm.com/tag.min.js" data-zone="10350229"></script>
+          </body>
+        </html>
+      `);
+      w.document.close();
+    } else {
+      const s = document.createElement("script");
+      s.src = "https://al5sm.com/tag.min.js";
+      s.dataset.zone = "10350229";
+      s.async = true;
+      document.body.appendChild(s);
     }
   };
 
+  // =====================
+  // ADS 2 (NEW SMARTLINK)
+  // =====================
+  const openAds2 = () => {
+    const w = window.open("about:blank", "_blank", "noopener,noreferrer");
+    if (w) {
+      w.location.href = ADS2_LINK;
+    } else {
+      window.location.href = ADS2_LINK;
+    }
+  };
+
+  // =====================
+  // ADS BUTTON HANDLER
+  // =====================
+  const handleAdsClick = () => {
+    if (clicked || adsStep >= 2) return;
+    setClicked(true);
+
+    if (adsStep === 0) openAds1();
+    if (adsStep === 1) openAds2();
+
+    setTimeout(() => {
+      setAdsStep((prev) => prev + 1);
+      setClicked(false);
+    }, 800);
+  };
+
+  // =====================
+  // MAIN LINK
+  // =====================
+  const handleMainClick = () => {
+    if (adsStep < 2 || !originalUrl) return;
+    window.open(originalUrl, "_blank");
+  };
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "Arial" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "Arial",
+        textAlign: "center",
+      }}
+    >
       <h2>Choose your link…</h2>
+
       {error && <p style={{ color: "red" }}>{error}</p>}
+
       {originalUrl && (
         <>
+          {adsStep < 2 && (
+            <button
+              onClick={handleAdsClick}
+              style={{
+                padding: "12px 24px",
+                margin: "8px",
+                fontSize: "16px",
+                background: "#28a745",
+                color: "#fff",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              Watch ADS {adsStep + 1} / 2
+            </button>
+          )}
+
           <button
-            onClick={() => handleClick("ads")}
-            style={{ padding: "12px 24px", margin: "8px", fontSize: "16px", background: "#28a745", color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer" }}
-          >
-            Get ADS
-          </button>
-          <button
-            onClick={() => handleClick("main")}
-            style={{ padding: "12px 24px", margin: "8px", fontSize: "16px", background: "#007bff", color: "#fff", border: "none", borderRadius: "6px", cursor: firstClickDone ? "pointer" : "not-allowed" }}
-            disabled={!firstClickDone}
+            onClick={handleMainClick}
+            disabled={adsStep < 2}
+            style={{
+              padding: "12px 24px",
+              margin: "8px",
+              fontSize: "16px",
+              background: adsStep >= 2 ? "#007bff" : "#aaa",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              cursor: adsStep >= 2 ? "pointer" : "not-allowed",
+            }}
           >
             Get Main Link
           </button>
