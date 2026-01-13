@@ -127,7 +127,7 @@ export default function Redirect() {
                 cursor: "pointer",
               }}
             >
-              Watch ADS {adsStep + 1} / 2
+              Watch ADS to unlock {adsStep + 1} / 2
             </button>
           )}
 
