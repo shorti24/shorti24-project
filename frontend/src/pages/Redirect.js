@@ -6,9 +6,9 @@ export default function Redirect() {
   const { code } = useParams();
   const [originalUrl, setOriginalUrl] = useState(null);
   const [error, setError] = useState("");
-  const [clicked, setClicked] = useState(false);
   const [adsStep, setAdsStep] = useState(0); // 0 = none, 1 = ads1 done, 2 = ads2 done
 
+  const ADS1_LINK = "https://al5sm.com/?zone=10350229";
   const ADS2_LINK =
     "https://creeduserbane.com/q2zh71eki?key=14b197e2bcc7866c4c1b4c4561a12ab4";
 
@@ -37,54 +37,11 @@ export default function Redirect() {
   }, [code]);
 
   // =====================
-  // ADS 1 (OLD TAG ADS)
+  // OPEN ADS FUNCTIONS
   // =====================
-  const openAds1 = () => {
-    const w = window.open("about:blank", "_blank", "noopener,noreferrer");
-    if (w) {
-      w.document.write(`
-        <html>
-          <body>
-            <script src="https://al5sm.com/tag.min.js" data-zone="10350229"></script>
-          </body>
-        </html>
-      `);
-      w.document.close();
-    } else {
-      const s = document.createElement("script");
-      s.src = "https://al5sm.com/tag.min.js";
-      s.dataset.zone = "10350229";
-      s.async = true;
-      document.body.appendChild(s);
-    }
-  };
-
-  // =====================
-  // ADS 2 (NEW SMARTLINK)
-  // =====================
-  const openAds2 = () => {
-    const w = window.open("about:blank", "_blank", "noopener,noreferrer");
-    if (w) {
-      w.location.href = ADS2_LINK;
-    } else {
-      window.location.href = ADS2_LINK;
-    }
-  };
-
-  // =====================
-  // ADS BUTTON HANDLER
-  // =====================
-  const handleAdsClick = () => {
-    if (clicked || adsStep >= 2) return;
-    setClicked(true);
-
-    if (adsStep === 0) openAds1();
-    if (adsStep === 1) openAds2();
-
-    setTimeout(() => {
-      setAdsStep((prev) => prev + 1);
-      setClicked(false);
-    }, 800);
+  const openAds = (link) => {
+    const w = window.open(link, "_blank", "noopener,noreferrer");
+    if (!w) window.location.href = link;
   };
 
   // =====================
@@ -93,6 +50,40 @@ export default function Redirect() {
   const handleMainClick = () => {
     if (adsStep < 2 || !originalUrl) return;
     window.open(originalUrl, "_blank");
+  };
+
+  // =====================
+  // ANIMATION STYLES
+  // =====================
+  const buttonStyle = {
+    padding: "14px 28px",
+    margin: "10px",
+    fontSize: "18px",
+    border: "none",
+    borderRadius: "8px",
+    color: "#fff",
+    width: "220px",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+  };
+
+  const greenGlow = {
+    ...buttonStyle,
+    background: "#28a745",
+    boxShadow: "0 0 10px #28a745, 0 0 20px #28a745, 0 0 30px #28a745",
+  };
+
+  const blueGlow = {
+    ...buttonStyle,
+    background: "#007bff",
+    boxShadow: "0 0 10px #007bff, 0 0 20px #007bff, 0 0 30px #007bff",
+  };
+
+  const disabledStyle = {
+    ...buttonStyle,
+    background: "#aaa",
+    cursor: "not-allowed",
+    boxShadow: "none",
   };
 
   return (
@@ -105,47 +96,78 @@ export default function Redirect() {
         justifyContent: "center",
         fontFamily: "Arial",
         textAlign: "center",
+        padding: "20px",
+        background: "radial-gradient(circle at top, #1e1e1e, #111)",
+        color: "#fff",
       }}
     >
-      <h2>Choose your link…</h2>
+      <h1 style={{ marginBottom: "20px", color: "#ffd700" }}>
+        🎮 Unlock Your Link
+      </h1>
+
+      {/* Instruction Card */}
+      <div
+        style={{
+          maxWidth: "440px",
+          background: "#222",
+          border: "2px solid #555",
+          borderRadius: "12px",
+          padding: "18px",
+          marginBottom: "25px",
+          textAlign: "left",
+        }}
+      >
+        <h3 style={{ marginTop: 0, color: "#00ffff" }}>📌 Instructions</h3>
+        <ol style={{ paddingLeft: "18px", margin: 0 }}>
+          <li>Click <strong>ADS 1</strong> and watch the ad</li>
+          <li>Return to this page</li>
+          <li>Click <strong>ADS 2</strong> and watch the ad</li>
+          <li>Main link will unlock automatically</li>
+        </ol>
+      </div>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {originalUrl && (
         <>
-          {adsStep < 2 && (
+          {/* ADS BUTTONS */}
+          {adsStep < 1 && (
             <button
-              onClick={handleAdsClick}
-              style={{
-                padding: "12px 24px",
-                margin: "8px",
-                fontSize: "16px",
-                background: "#28a745",
-                color: "#fff",
-                border: "none",
-                borderRadius: "6px",
-                cursor: "pointer",
+              style={greenGlow}
+              onClick={() => {
+                openAds(ADS1_LINK);
+                setAdsStep(1);
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
-              Watch ADS to unlock {adsStep + 1} / 2
+              ▶ Watch ADS 1
             </button>
           )}
 
+          {adsStep < 2 && adsStep >= 1 && (
+            <button
+              style={greenGlow}
+              onClick={() => {
+                openAds(ADS2_LINK);
+                setAdsStep(2);
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            >
+              ▶ Watch ADS 2
+            </button>
+          )}
+
+          {/* MAIN LINK */}
           <button
             onClick={handleMainClick}
             disabled={adsStep < 2}
-            style={{
-              padding: "12px 24px",
-              margin: "8px",
-              fontSize: "16px",
-              background: adsStep >= 2 ? "#007bff" : "#aaa",
-              color: "#fff",
-              border: "none",
-              borderRadius: "6px",
-              cursor: adsStep >= 2 ? "pointer" : "not-allowed",
-            }}
+            style={adsStep >= 2 ? blueGlow : disabledStyle}
+            onMouseEnter={(e) => (adsStep >= 2 ? (e.currentTarget.style.transform = "scale(1.05)") : null)}
+            onMouseLeave={(e) => (adsStep >= 2 ? (e.currentTarget.style.transform = "scale(1)") : null)}
           >
-            Get Main Link
+            🔓 Get Main Link
           </button>
         </>
       )}
