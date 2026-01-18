@@ -8,9 +8,9 @@ export default function Redirect() {
   const [error, setError] = useState("");
   const [adsStep, setAdsStep] = useState(0); // 0 = none, 1 = ads1 done, 2 = ads2 done
 
-  const ADS1_LINK = "https://al5sm.com/?zone=10350229";
+  const ADS1_LINK = "https://otieu.com/4/10483017";
   const ADS2_LINK =
-    "https://creeduserbane.com/q2zh71eki?key=14b197e2bcc7866c4c1b4c4561a12ab4";
+    "https://creeduserbane.com/ka6yh5bud3?key=efab50234bd8b9d26c62a023984ae46b";
 
   // =====================
   // FETCH ORIGINAL URL
